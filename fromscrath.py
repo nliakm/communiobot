@@ -2,6 +2,7 @@ import argparse
 import re
 import requests
 import json
+from addict import Dict
 from BeautifulSoup import BeautifulSoup
 from requests_toolbelt.utils import dump
 
@@ -14,11 +15,12 @@ class Bot:
     self.userid = ''
     self.communityid = ''
     self.authToken = ''
+    self.list_userids = []
 
   def run(self):
     self.login()
     self.getInformation()    
-    self.standingsCurrent()
+    self.standingsSeason()
     self.postText()
     self.sendMoney()
 
@@ -70,22 +72,37 @@ class Bot:
     self.userid = jsonData['user']['id']
     print 'Community ID = ' + self.communityid + '\nUser ID = ' + self.userid
 
-  def standingsCurrent(self):
-    headersStanding = {
-    'Origin': 'http://www.comunio.de',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Accept-Language': 'de-DE,en-EN;q=0.9',
-    'Authorization': 'Bearer ' + self.authToken,
-    'Accept': 'application/json, text/plain, */*',
-    'Referer': 'http://www.comunio.de/standings/total',
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/60.0.3112.78 Chrome/60.0.3112.78 Safari/537.36',
-    'Connection': 'keep-alive',
+  def standingsSeason(self):
+    headersStandings = {
+        'Origin': 'http://www.comunio.de',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'de-DE,en-EN;q=0.9',
+        'Authorization': 'Bearer ' + self.authToken,
+        'Accept': 'application/json, text/plain, */*',
+        'Referer': 'http://www.comunio.de/standings/total',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/60.0.3112.78 Chrome/60.0.3112.78 Safari/537.36',
+        'Connection': 'keep-alive',
     }
 
-    requestStanding = self.session.get('https://api.comunio.de/', headers=headersStanding)
-    print requestStanding.text
+    paramsStandings = (
+        ('period', 'season'),
+    )
 
+    requestStanding = requests.get('https://api.comunio.de/communities/2152667/standings', headers=headersStandings, params=paramsStandings)
 
+    # get IDs of all users
+    jsonData = json.loads(requestStanding.text)
+    tempid = ''
+    for id in jsonData.get('items'):
+      tempid = id
+    counter = 0
+    for id in jsonData.get('items').get(tempid).get('players'):
+      counter = counter+1
+      print str(counter) + ". Platz: (" + str(id['name']) + "), Punkte: " + str(id['points'])
+      self.list_userids.append(id['id'])
+
+    # for item in self.list_userids:
+    #   print item
   def postText(self):
     headersText = {
         'Authorization': 'Bearer ' + self.authToken,
@@ -134,7 +151,7 @@ def main():
     if(bot.modus == 'login'):
       bot.login()
       bot.getInformation()
-      bot.standingsCurrent()
+      bot.standingsSeason()
     elif(bot.modus == 'send_money'):
       bot.login()
       bot.getInformation()
