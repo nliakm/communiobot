@@ -27,14 +27,14 @@ class Bot:
     def doLogin(self, username, password):
         self.session = requests.Session()
         headersLogin = {
-            'Origin': 'http://www.comunio.de',
-            'Accept-Encoding': 'gzip, deflate, br',
+            'Origin': self.origin,
+            'Accept-Encoding': self.accept_encoding,
             'Accept-Language': 'de-DE,en-EN;q=0.9',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/60.0.3112.78 Chrome/60.0.3112.78 Safari/537.36',
+            'User-Agent': self.user_agent,
             'Content-Type': 'application/x-www-form-urlencoded',
             'Accept': 'application/json, text/plain, */*',
             'Referer': 'http://www.comunio.de/home',
-            'Connection': 'keep-alive',
+            'Connection': self.connection,
         }
 
         dataLogin = [
@@ -53,7 +53,7 @@ class Bot:
             else: return self.authToken
         else: return 'Login Failed'
 
-        def getCommunityId(self, authToken):
+    def getCommunityId(self, authToken):
         headersInfo = {
             'Origin': self.origin,
             'Accept-Encoding': self.accept_encoding,
@@ -165,24 +165,22 @@ class Bot:
         requestNachricht = self.session.post('https://api.comunio.de/communities/' +
                                              self.communityid + '/users/12578395/news', headers=headersText, data=dataText)
 
-    def sendMoney(self, authToken, communityid, userid, amount, reason):
+    def sendMoney(self, communityid, userid, amount, reason):
         headersMoney = {
-            'Authorization': 'Bearer ' + authToken,
-            'Origin': 'http://www.comunio.de',
-            'Accept-Encoding': 'gzip, deflate, br',
+            'Authorization': 'Bearer ' + self.authToken,
+            'Origin': self.origin,
+            'Accept-Encoding': self.accept_encoding,
             'Accept-Language': 'de-DE,en-EN;q=0.9',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/60.0.3112.78 Chrome/60.0.3112.78 Safari/537.36',
+            'User-Agent': self.user_agent,
             'Content-Type': 'application/json;charset=UTF-8',
             'Accept': 'application/json, text/plain, */*',
             'Referer': 'http://www.comunio.de/setup/clubs/rewardsAndDisciplinary',
-            'Connection': 'keep-alive',
+            'Connection': self.connection,
         }
 
         dataMoney = '{"amount":' + amount + ',"reason":"' + reason + '"}'
         requestMoney = requests.post('https://api.comunio.de/communities/' + communityid +'/users/' + userid + '/penalties', headers=headersMoney, data=dataMoney)
         return requestMoney.status_code
-
-
 
 class MouseEventFrame(wx.Frame):
     def __init__(self, parent, id):
@@ -199,46 +197,49 @@ class MouseEventFrame(wx.Frame):
         self.text = wx.TextCtrl(self.panel, pos=(5, 50), size=(285, 300), style=wx.TE_MULTILINE)
         self.text.SetEditable(False)
 
-        #Login dialog
+        #Login objects
         self.usernameText = wx.TextCtrl(self.panel, pos=(5, 15), size=(100, 10), value="darealmvp")
         self.passwordText = wx.TextCtrl(self.panel, pos=(105, 15), size=(100, 10), value="test7!", style=wx.TE_PASSWORD)
         self.buttonLogin = wx.Button(self.panel, label="Login", pos=(205, 5))
 
         # send money manually
         self.moneyAmount = wx.TextCtrl(self.panel, pos=(5, 370), size=(100, 10), value="1000")
-        self.moneyReason = wx.TextCtrl(self.panel, pos=(110, 370), size=(100, 10), value="reason")
-        self.moneyUserId = ComboBox(self.panel, value="", pos=DefaultPosition,
-         size=DefaultSize, choices=[], style=0, validator=DefaultValidator,
-         name=ComboBoxNameStr)        
-        self.buttonSendMoney = wx.Button(self.panel, label="Send", pos=(215, 360), size=(100, 30))
+        self.moneyReason = wx.TextCtrl(self.panel, pos=(115, 370), size=(100, 10), value="reason")
+        self.moneyUserId = wx.ComboBox(self.panel, value="", pos=(5, 400), choices= bot.list_userids)        
+        self.buttonSendMoney = wx.Button(self.panel, label="Send", pos=(130, 400), size=(100, 30))
         
         # Button events
-        self.Bind(wx.EVT_BUTTON, self.myClick, self.buttonSendMoney)
-        self.Bind(wx.EVT_BUTTON, self.OnButtonClick, self.buttonLogin) 
+        self.Bind(wx.EVT_BUTTON, self.myClick, self.buttonSendMoney) # send money manually event
+        self.Bind(wx.EVT_BUTTON, self.OnButtonClick, self.buttonLogin) # login button event
     
     def myClick(self, event):
-        result = bot.sendMoney(self.authTokenFromLogin, str(self.communityid), str(self.userid), str(self.moneyAmount.GetValue()), self.moneyReason.GetValue())
+        result = bot.sendMoney(str(self.communityid), str(self.userid), str(self.moneyAmount.GetValue()), self.moneyReason.GetValue())
         if(result == 200):
-            self.text.AppendText('\nGutschrift erfolgreich!\nBenutzer: ' +str(self.userid)+ '\nSumme: ' +str(self.moneyAmount.GetValue())+ '\nBegruendung: ' +str(self.moneyReason.GetValue()))
-        else: self.text.AppendText('\nGutschrift fehlgeschlagen!')
+            self.text.AppendText('\nSending money succesful!\nBenutzer: ' +str(self.userid)+ '\nSumme: ' +str(self.moneyAmount.GetValue())+ '\nBegruendung: ' +str(self.moneyReason.GetValue()))
+        else: self.text.AppendText('\nSending money failed!')
 
     def OnButtonClick(self, event):
-        self.authTokenFromLogin = bot.doLogin(self.usernameText.GetValue(), self.passwordText.GetValue())
+        self.authTokenFromLogin = bot.doLogin(self.usernameText.GetValue(), self.passwordText.GetValue()) # get authtoken
         if(self.authTokenFromLogin == 'Login Failed'): self.text.WriteText('Login failed!')
         else:
-            self.buttonLogin.Disable()
+            # destroy login objects
             self.buttonLogin.Destroy()
             self.usernameText.Destroy()
             self.passwordText.Destroy()
+
             self.welcomeLabel.Enable()
+
             self.text.WriteText('\nLogin succesful!\nGathering information...')
+
+            # get ids
             self.communityid = bot.getCommunityId(self.authTokenFromLogin)
             self.userid = bot.getUserId(self.authTokenFromLogin)
+
+
             self.text.AppendText('\nAuthToken: ' + self.authTokenFromLogin + '\nCommunity ID: ' + self.communityid + '\nUser ID: ' + self.userid)
+            self.moneyUserId.SetItems(bot.standingsSeason(self.authTokenFromLogin)) # add userids to combobox
 
             self.welcomeLabel.SetLabelText('Welcome, number ' + str(self.userid))
-
-            
         self.panel.Refresh()
 
 if __name__ == '__main__':
