@@ -19,6 +19,16 @@ def updateConfig(filename):
         config.sections()
 
         config.read(filename)
-        for value in config['DEFAULT']: print(value)
+        for i in config['DEFAULT']:
+            print i
         return True
     return False
+
+def readConfig(filename, placement):
+    if (checkIfFileExists(filename)):
+        config = configparser.ConfigParser()
+        config.sections()
+
+        config.read(filename)   
+        return config['DEFAULT'][str(placement)]
+    return -1  

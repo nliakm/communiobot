@@ -1,10 +1,12 @@
 import wx
 import argparse
+import configparser
 import re
 import requests
 import json
 from myConfigParser3_5 import createConfig
 from myConfigParser3_5 import updateConfig
+from myConfigParser3_5 import readConfig
 
 
 class Bot:
@@ -50,11 +52,17 @@ class Bot:
             jsonData = json.loads(requestLogin.text)
             self.authToken = str(jsonData['access_token'])
             if(self.authToken == ''):
-                return 'Login Failed'
+                frame.text.AppendText('Login fehlgeschlagen!')
+                return requestLogin.status_code
             else:
-                return self.authToken
+                frame.text.AppendText('Login erfolgleich!\nZiehe Informationen...')
+                return requestLogin.status_code                
         else:
-            return 'Login Failed'
+            frame.text.AppendText('Login fehlgeschlagen!')
+            return requestLogin.status_code            
+
+    def getAuthToken(self):
+        return self.authToken
 
     def getCommunityId(self):
         headersInfo = {
@@ -191,6 +199,14 @@ class Bot:
                                      '/users/' + userid + '/penalties', headers=headersMoney, data=dataMoney)
         return requestMoney.status_code
 
+    def executeTransaction(self, configfile):
+        for i in self.placement_and_userids:
+            temp = readConfig('config.ini', str(self.placement_and_userids[i]))
+            if(int(temp) > 0):
+                if(self.sendMoney(self.getCommunityId(), str(i), temp, str(self.placement_and_userids[i]) + '. Platz.') == 200):
+                    frame.text.AppendText('\nTransaktion fuer ' + str(self.placement_and_userids[i]) + '. Platz erfolgreich!')
+                else: frame.text.AppendText('\nTransaktion fuer ' + str(self.placement_and_userids[i]) + '. Platz fehlgeschlagen!')
+
     def getPlacementAndUserIds(self):
         return self.placement_and_userids
 
@@ -202,7 +218,7 @@ class MouseEventFrame(wx.Frame):
         self.userid = ''
         self.userlist = []
 
-        wx.Frame.__init__(self, parent, id, 'program', size=(500, 500))
+        wx.Frame.__init__(self, parent, id, 'comuniobot', size=(500, 500))
         self.panel = wx.Panel(self)
 
         self.welcomeLabel = wx.StaticText(
@@ -220,22 +236,28 @@ class MouseEventFrame(wx.Frame):
             100, 10), value="test7!", style=wx.TE_PASSWORD)
         self.buttonLogin = wx.Button(self.panel, label="Login", pos=(205, 5))
 
+        self.buttonTransaction = wx.Button(
+            self.panel, label="Absenden", pos=(205, 5))
+        self.buttonTransaction.Show(False)
+        self.buttonTransaction.Disable()
+
         # send money manually
-        self.moneyAmount = wx.TextCtrl(self.panel, pos=(
-            5, 370), size=(100, 10), value="1000")
-        self.moneyReason = wx.TextCtrl(self.panel, pos=(
-            115, 370), size=(100, 10), value="begruendung")
-        self.moneyUserId = wx.ComboBox(
-            self.panel, value="", pos=(5, 400), choices=bot.list_userids)
-        self.buttonSendMoney = wx.Button(
-            self.panel, label="Senden", pos=(130, 400), size=(100, 30))
-        #self.mbSendMoney = wx.MessageBox('No user ID selected!', 'Error!', wx.OK | wx.ICON_ERROR, self.panel)
+        # self.moneyAmount = wx.TextCtrl(self.panel, pos=(
+        #     5, 370), size=(100, 10), value="1000")
+        # self.moneyReason = wx.TextCtrl(self.panel, pos=(
+        #     115, 370), size=(100, 10), value="begruendung")
+        # self.moneyUserId = wx.ComboBox(
+        #     self.panel, value="", pos=(5, 400), choices=bot.list_userids)
+        # self.buttonSendMoney = wx.Button(
+        #     self.panel, label="Senden", pos=(130, 400), size=(100, 30))
 
         # Button events
-        # send money manually event
-        self.Bind(wx.EVT_BUTTON, self.myClick, self.buttonSendMoney)
-        self.Bind(wx.EVT_BUTTON, self.OnButtonClick,
-                  self.buttonLogin)  # login button event
+        #self.Bind(wx.EVT_BUTTON, self.myClick, self.buttonSendMoney)
+        self.Bind(wx.EVT_BUTTON, self.clickTransaction, self.buttonTransaction)
+        self.Bind(wx.EVT_BUTTON, self.OnButtonClick, self.buttonLogin)
+
+    def clickTransaction(self, event):
+        bot.executeTransaction('config.ini')
 
     def myClick(self, event):
         if(str(self.moneyUserId.GetSelection()) != '-1'):
@@ -262,30 +284,32 @@ class MouseEventFrame(wx.Frame):
         self.usernameText.Destroy()
         self.passwordText.Destroy()
         self.welcomeLabel.Enable()
+        self.buttonTransaction.Enable()
+        self.buttonTransaction.Show(True)
 
         # get ids
         self.communityid = bot.getCommunityId()
         self.userid = bot.getUserId()
         self.userlist = bot.getAllUserIds()
 
-        self.moneyUserId.SetItems(self.userlist)  # add userids to combobox
+        # self.moneyUserId.SetItems(self.userlist)  # add userids to combobox
+
         self.text.AppendText(
             '\nCommunity ID: ' + self.communityid + '\nEigene User ID: ' + self.userid)
-
         self.welcomeLabel.SetLabelText(
             'Willkommen, Nummer ' + str(self.userid))
 
     def OnButtonClick(self, event):
-        self.authTokenFromLogin = bot.doLogin(
-            self.usernameText.GetValue(), self.passwordText.GetValue())  # get authtoken
+        return_code = bot.doLogin(self.usernameText.GetValue(), self.passwordText.GetValue()) # execute login
+        self.authTokenFromLogin = bot.getAuthToken() # get authtoken
 
-        if(self.authTokenFromLogin == 'Login Failed'):
-            self.text.WriteText('Login fehlgeschlagen!')
-        else:
-            self.text.WriteText('\nLogin erfolgreich!\nZiehe Informationen...')
+        if(return_code == 200):
             self.getInformationsAfterLogin()
             self.printPlacement()
-            createConfig()  # if no config.ini exists, default config will be created
+            createConfig()  # if no config.ini exists, default config will be created            
+        else:
+            wx.MessageBox('Login fehlgeschlagen\nBitte erneut versuchen!', 'Fehler!',
+                          wx.OK | wx.ICON_ERROR, self.panel)
 
         self.panel.Refresh()
 
