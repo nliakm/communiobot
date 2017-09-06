@@ -4,7 +4,7 @@ import re
 import requests
 import json
 from BeautifulSoup import BeautifulSoup
-from requests_toolbelt.utils import dump
+import myConfigParser3_5
 
 
 class Bot:
@@ -47,10 +47,8 @@ class Bot:
 
         # extract authtoken to be able to do requests as a logged in user
         if(requestLogin.status_code < 400):
-            dataDump = dump.dump_all(requestLogin)
-            decodedData = dataDump.decode('utf-8')
-            m = re.search('(?<=access_token":")\w+', decodedData)
-            self.authToken = m.group(0)
+            jsonData = json.loads(requestLogin.text)
+            self.authToken = str(jsonData['access_token'])
             if(self.authToken == ''): return 'Login Failed'
             else: return self.authToken
         else: return 'Login Failed'
@@ -135,18 +133,26 @@ class MouseEventFrame(wx.Frame):
         wx.Frame.__init__(self, parent, id, 'program', size=(500, 500))
         self.panel = wx.Panel(self)
 
-        self.buttonLogin = wx.Button(self.panel, label="Login", pos=(205, 5))
-
+        self.welcomeLabel = wx.StaticText(self.panel, pos=(5,15), size=(100,20))
+        self.welcomeLabel.Disable()
+        # output console
         self.text = wx.TextCtrl(self.panel, pos=(5, 50), size=(285, 300), style=wx.TE_MULTILINE)
         self.text.SetEditable(False)
-        #self.text.SetBackgroundColour((190,190,190))
+
+        #Login dialog
         self.usernameText = wx.TextCtrl(self.panel, pos=(5, 15), size=(100, 10), value="darealmvp")
         self.passwordText = wx.TextCtrl(self.panel, pos=(105, 15), size=(100, 10), value="test7!", style=wx.TE_PASSWORD)
+        self.buttonLogin = wx.Button(self.panel, label="Login", pos=(205, 5))
 
-        self.moneyAmount = wx.TextCtrl(self.panel, pos=(300, 60), size=(100, 10), value="1000")
-        self.moneyReason = wx.TextCtrl(self.panel, pos=(300, 90), size=(100, 10), value="reason")          
-        self.buttonSendMoney = wx.Button(self.panel, label="Send", pos=(300, 120), size=(100, 30))
+        # send money manually
+        self.moneyAmount = wx.TextCtrl(self.panel, pos=(5, 370), size=(100, 10), value="1000")
+        self.moneyReason = wx.TextCtrl(self.panel, pos=(110, 370), size=(100, 10), value="reason")
+        self.moneyUserId = ComboBox(self.panel, value="", pos=DefaultPosition,
+         size=DefaultSize, choices=[], style=0, validator=DefaultValidator,
+         name=ComboBoxNameStr)        
+        self.buttonSendMoney = wx.Button(self.panel, label="Send", pos=(215, 360), size=(100, 30))
         
+        # Button events
         self.Bind(wx.EVT_BUTTON, self.myClick, self.buttonSendMoney)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClick, self.buttonLogin) 
     
@@ -158,13 +164,21 @@ class MouseEventFrame(wx.Frame):
 
     def OnButtonClick(self, event):
         self.authTokenFromLogin = bot.doLogin(self.usernameText.GetValue(), self.passwordText.GetValue())
-        if(self.authTokenFromLogin == 'Login Failed'): self.text.WriteText(self.authTokenFromLogin)
+        if(self.authTokenFromLogin == 'Login Failed'): self.text.WriteText('Login failed!')
         else:
             self.buttonLogin.Disable()
+            self.buttonLogin.Destroy()
+            self.usernameText.Destroy()
+            self.passwordText.Destroy()
+            self.welcomeLabel.Enable()
             self.text.WriteText('\nLogin succesful!\nGathering information...')
             self.communityid = bot.getCommunityId(self.authTokenFromLogin)
             self.userid = bot.getUserId(self.authTokenFromLogin)
             self.text.AppendText('\nAuthToken: ' + self.authTokenFromLogin + '\nCommunity ID: ' + self.communityid + '\nUser ID: ' + self.userid)
+
+            self.welcomeLabel.SetLabelText('Welcome, number ' + str(self.userid))
+
+            
         self.panel.Refresh()
 
 if __name__ == '__main__':
