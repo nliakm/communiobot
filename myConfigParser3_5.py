@@ -1,14 +1,24 @@
 import configparser
+import os
 
 def createConfig():
-    config = configparser.ConfigParser()
-    config['DEFAULT'] = {'firstplacement': '2000', 'secondplacement': '1500', 'thirdplacement': '1000', 'fourthplacement': '500' }
-    with open('config3.ini', 'w') as configfile:
-        config.write(configfile)
+    if (not checkIfFileExists('config.ini')):
+        config = configparser.ConfigParser()
+        config['DEFAULT'] = {'1': '2000', '2': '1500', '3': '1000', '4': '500' }
+        with open('config.ini', 'w') as configfile:
+            config.write(configfile)
+        return True
+    return False
+
+def checkIfFileExists(filename):
+    return os.path.isfile(filename)
 
 def updateConfig(filename):
-    config = configparser.ConfigParser()
-    config.sections()
+    if (checkIfFileExists(filename)):
+        config = configparser.ConfigParser()
+        config.sections()
 
-    config.read(filename)
-    for key in config['DEFAULT']: print(key)
+        config.read(filename)
+        for value in config['DEFAULT']: print(value)
+        return True
+    return False
