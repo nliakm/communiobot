@@ -2,20 +2,28 @@ import argparse
 import re
 import requests
 import json
-from addict import Dict
-from BeautifulSoup import BeautifulSoup
+yqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfrom BeautifulSoup import BeautifulSoup
 from requests_toolbelt.utils import dump
-
+ 
 
 class Bot:
   def __init__(self, username, password, modus):
     self.username = username
     self.password = password
     self.modus = modus
-    self.userid = ''
-    self.communityid = ''
+
+    self.userid = '' # userid of logged in user
+    self.communityid = '' # id of community from logged in user
+    self.list_userids = [] # list of all userids in community of logged in user
+
+    # HTTP Header parameters
     self.authToken = ''
-    self.list_userids = []
+    self.origin = 'http://www.comunio.de'
+    self.user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/60.0.3112.78 Chrome/60.0.3112.78 Safari/537.36'
+    self.accept_encoding = 'gzip, deflate, br'
+    self.connection = 'keep-alive'
+    
+
 
   def run(self):
     self.login()
@@ -27,14 +35,14 @@ class Bot:
   def login(self):
     self.session = requests.Session()
     headersLogin = {
-      'Origin': 'http://www.comunio.de',
-      'Accept-Encoding': 'gzip, deflate, br',
+      'Origin': self.origin,
+      'Accept-Encoding': self.accept_encoding,
       'Accept-Language': 'de-DE,en-EN;q=0.9',
-      'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/60.0.3112.78 Chrome/60.0.3112.78 Safari/537.36',
+      'User-Agent': self.user_agent,
       'Content-Type': 'application/x-www-form-urlencoded',
       'Accept': 'application/json, text/plain, */*',
       'Referer': 'http://www.comunio.de/home',
-      'Connection': 'keep-alive',
+      'Connection': self.connection,
     }
 
     dataLogin = [
@@ -55,14 +63,14 @@ class Bot:
 
   def getInformation(self):
     headersInfo = {
-        'Origin': 'http://www.comunio.de',
-        'Accept-Encoding': 'gzip, deflate, br',
+        'Origin': self.origin,
+        'Accept-Encoding': self.accept_encoding,
         'Accept-Language': 'en-EN',
         'Authorization': 'Bearer ' + self.authToken,
         'Accept': 'application/json, text/plain, */*',
         'Referer': 'http://www.comunio.de/dashboard',
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/60.0.3112.78 Chrome/60.0.3112.78 Safari/537.36',
-        'Connection': 'keep-alive',
+        'User-Agent': self.user_agent,
+        'Connection': self.connection,
     }
 
     requestInfo = self.session.get('https://api.comunio.de/', headers=headersInfo)
@@ -74,21 +82,21 @@ class Bot:
 
   def standingsSeason(self):
     headersStandings = {
-        'Origin': 'http://www.comunio.de',
-        'Accept-Encoding': 'gzip, deflate, br',
+        'Origin': self.origin,
+        'Accept-Encoding': self.accept_encoding,
         'Accept-Language': 'de-DE,en-EN;q=0.9',
         'Authorization': 'Bearer ' + self.authToken,
         'Accept': 'application/json, text/plain, */*',
         'Referer': 'http://www.comunio.de/standings/total',
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/60.0.3112.78 Chrome/60.0.3112.78 Safari/537.36',
-        'Connection': 'keep-alive',
+        'User-Agent': self.user_agent,
+        'Connection': self.connection,
     }
 
     paramsStandings = (
         ('period', 'season'),
     )
 
-    requestStanding = requests.get('https://api.comunio.de/communities/2152667/standings', headers=headersStandings, params=paramsStandings)
+    requestStanding = requests.get('https://api.comunio.de/communities/' +self.communityid+ '/standings', headers=headersStandings, params=paramsStandings)
 
     # get IDs of all users
     jsonData = json.loads(requestStanding.text)
@@ -106,14 +114,13 @@ class Bot:
   def postText(self):
     headersText = {
         'Authorization': 'Bearer ' + self.authToken,
-        'Origin': 'http://www.comunio.de',
-        'Accept-Encoding': 'gzip, deflate, br',
+        'Origin': self.origin,
+        'Accept-Encoding': self.accept_encoding,
         'Accept-Language': 'de-DE,en-EN;q=0.9',
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/60.0.3112.78 Chrome/60.0.3112.78 Safari/537.36',
-        'Content-Type': 'application/json;charset=UTF-8',
+        'User-Agent': self.user_agent,
         'Accept': 'application/json, text/plain, */*',
         'Referer': 'http://www.comunio.de/newsEntry/',
-        'Connection': 'keep-alive',
+        'Connection': self.connection,
     }
     title = "Das ist ein Titel"
     content = "Das ist der Inhalt</p>\\n<p>1. Zeile</p>\\n<p>2. Zeile"
@@ -123,14 +130,14 @@ class Bot:
   def sendMoney(self):
     headersMoney = {
         'Authorization': 'Bearer ' + self.authToken,
-        'Origin': 'http://www.comunio.de',
-        'Accept-Encoding': 'gzip, deflate, br',
+        'Origin': self.origin,
+        'Accept-Encoding': self.accept_encoding,
         'Accept-Language': 'de-DE,en-EN;q=0.9',
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/60.0.3112.78 Chrome/60.0.3112.78 Safari/537.36',
+        'User-Agent': self.user_agent,
         'Content-Type': 'application/json;charset=UTF-8',
         'Accept': 'application/json, text/plain, */*',
         'Referer': 'http://www.comunio.de/setup/clubs/rewardsAndDisciplinary',
-        'Connection': 'keep-alive',
+        'Connection': self.connection,
     }
 
     userid = self.userid
