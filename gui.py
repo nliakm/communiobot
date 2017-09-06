@@ -13,16 +13,16 @@ class Bot:
         self.username = ''
         self.password = ''
         #self.modus = modus
-        self.userid = ''
-        self.communityid = ''
-        self.authToken = ''
+        self.userid = '' # userid of logged in user
+        self.communityid = '' # id of community from logged in user
+        self.list_userids = [] # list of all userids in community of logged in user
 
-#   def run(self):
-#     self.doLogin()
-#     self.getInformation()
-#     self.standingsCurrent()
-#     self.postText()
-#     self.sendMoney()
+        # HTTP Header parameters
+        self.authToken = '' # authtoken to perform http request as a logged in user
+        self.origin = 'http://www.comunio.de'
+        self.user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/60.0.3112.78 Chrome/60.0.3112.78 Safari/537.36'
+        self.accept_encoding = 'gzip, deflate, br'
+        self.connection = 'keep-alive'
 
     def doLogin(self, username, password):
         self.session = requests.Session()
