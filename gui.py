@@ -53,16 +53,16 @@ class Bot:
             else: return self.authToken
         else: return 'Login Failed'
 
-    def getCommunityId(self, authToken):
+        def getCommunityId(self, authToken):
         headersInfo = {
-            'Origin': 'http://www.comunio.de',
-            'Accept-Encoding': 'gzip, deflate, br',
+            'Origin': self.origin,
+            'Accept-Encoding': self.accept_encoding,
             'Accept-Language': 'en-EN',
             'Authorization': 'Bearer ' + authToken,
             'Accept': 'application/json, text/plain, */*',
             'Referer': 'http://www.comunio.de/dashboard',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/60.0.3112.78 Chrome/60.0.3112.78 Safari/537.36',
-            'Connection': 'keep-alive',
+            'User-Agent': self.user_agent,
+            'Connection': self.connection,
         }
 
         requestInfo = requests.get('https://api.comunio.de/', headers=headersInfo)
@@ -71,19 +71,79 @@ class Bot:
 
     def getUserId(self, authToken):
         headersInfo = {
-            'Origin': 'http://www.comunio.de',
-            'Accept-Encoding': 'gzip, deflate, br',
+            'Origin': self.origin,
+            'Accept-Encoding': self.accept_encoding,
             'Accept-Language': 'en-EN',
             'Authorization': 'Bearer ' + authToken,
             'Accept': 'application/json, text/plain, */*',
             'Referer': 'http://www.comunio.de/dashboard',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/60.0.3112.78 Chrome/60.0.3112.78 Safari/537.36',
-            'Connection': 'keep-alive',
+            'User-Agent': self.user_agent,
+            'Connection': self.connection,
         }
 
         requestInfo = requests.get('https://api.comunio.de/', headers=headersInfo)
         jsonData = json.loads(requestInfo.text)
         return jsonData['user']['id']
+
+    def standingsSeason(self, authToken):
+        headersStandings = {
+            'Origin': self.origin,
+            'Accept-Encoding': self.accept_encoding,
+            'Accept-Language': 'de-DE,en-EN;q=0.9',
+            'Authorization': 'Bearer ' + authToken,
+            'Accept': 'application/json, text/plain, */*',
+            'Referer': 'http://www.comunio.de/standings/total',
+            'User-Agent': self.user_agent,
+            'Connection': self.connection,
+        }
+
+        paramsStandings = (
+            ('period', 'season'),
+        )
+
+#        requestStanding = requests.get('https://api.comunio.de/communities/' +self.communityid+ '/standings', headers=headersStandings, params=paramsStandings)
+        requestStanding = requests.get('https://api.comunio.de/communities/' +self.getCommunityId(self.authToken)+ '/standings', headers=headersStandings, params=paramsStandings)
+
+        # get IDs of all users
+        jsonData = json.loads(requestStanding.text)
+        tempid = ''
+        for id in jsonData.get('items'):
+            tempid = id
+            counter = 0
+        for id in jsonData.get('items').get(tempid).get('players'):
+            counter = counter+1
+            self.list_userids.append(str(id['id']))   
+        return self.list_userids
+
+
+    def getLatestStanding(self, authtoken, standing):
+        headers = {
+            'Origin': self.origin,
+            'Accept-Encoding': self.accept_encoding,
+            'Accept-Language': 'de-DE,en-EN;q=0.9',
+            'Authorization': 'Bearer ' + self.authToken,
+            'Accept': 'application/json, text/plain, */*',
+            'Referer': 'http://www.comunio.de/standings/total',
+            'User-Agent': self.user_agent,
+            'Connection': self.connection,
+        }
+
+        params = (
+            ('period', 'matchday'),
+            ('wpe', 'true'),
+        )
+
+        requestLatestStanding = requests.get('https://api.comunio.de/communities/' +self.getCommunityId(self.authToken)+ '/standings', headers=headers, params=params)
+        jsonData = json.loads(requestLatestStanding.text)
+        counter = 1
+        for item in jsonData['items']:  
+            if(counter == int(standing)):
+                smResult = bot.sendMoney(self.authToken, str(item['_embedded']['user']['id']), '10000', 'Praemie fuer den ' +str(standing)+ '. Platz!')                
+                return str(standing) + '. Platz: ' + str(item['_embedded']['user']['name']) + '(' + str(item['lastPoints']) + ')'
+            else:
+                counter = counter + 1 
+        #return self.list_userids
+        return -1
 
     def postText(self):
         headersText = {
