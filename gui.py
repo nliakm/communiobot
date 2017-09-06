@@ -138,7 +138,8 @@ class Bot:
         counter = 1
         for item in jsonData['items']:  
             if(counter == int(standing)):
-                smResult = bot.sendMoney(self.authToken, str(item['_embedded']['user']['id']), '10000', 'Praemie fuer den ' +str(standing)+ '. Platz!')                
+                if(str(send) == 'yes'):
+                    smResult = bot.sendMoney(self.authToken, str(item['_embedded']['user']['id']), '10000', 'Praemie fuer den ' +str(standing)+ '. Platz!')                
                 return str(standing) + '. Platz: ' + str(item['_embedded']['user']['name']) + '(' + str(item['lastPoints']) + ')'
             else:
                 counter = counter + 1 
