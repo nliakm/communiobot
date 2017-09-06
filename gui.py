@@ -128,7 +128,7 @@ class Bot:
         return self.list_userids
 
 
-    def getLatestStanding(self, authtoken, standing):
+    def getLatestStanding(self, authtoken, standing, send):
         headers = {
             'Origin': self.origin,
             'Accept-Encoding': self.accept_encoding,
@@ -150,7 +150,8 @@ class Bot:
         counter = 1
         for item in jsonData['items']:  
             if(counter == int(standing)):
-                smResult = bot.sendMoney(self.authToken, str(item['_embedded']['user']['id']), '10000', 'Praemie fuer den ' +str(standing)+ '. Platz!')                
+                if(str(send) == 'yes'):
+                    smResult = bot.sendMoney(self.authToken, str(item['_embedded']['user']['id']), '10000', 'Praemie fuer den ' +str(standing)+ '. Platz!')                
                 return str(standing) + '. Platz: ' + str(item['_embedded']['user']['name']) + '(' + str(item['lastPoints']) + ')'
             else:
                 counter = counter + 1 
@@ -243,13 +244,13 @@ class MouseEventFrame(wx.Frame):
             userlist = bot.standingsSeason(self.authTokenFromLogin)
             self.text.AppendText('\nUser IDs: ' + str(userlist))
             self.text.AppendText('\nAuthToken: ' + self.authTokenFromLogin + '\nCommunity ID: ' + self.communityid + '\nUser ID: ' + self.userid)
-            createConfig()
-            # self.text.AppendText('\nPlatzierungen letzter Spieltag:')
-            # for i in range(len(userlist)+1):
-            #     temp = bot.getLatestStanding(self.authTokenFromLogin, i+1)
-            #     if(str(temp) != '-1'):
-            #         # smResult = bot.sendMoney(self.authTokenFromLogin, str(userlist[i+1]), '10000', 'Praemie fuer den ' +str(i+1)+ '. Platz!')
-            #         self.text.AppendText('\n' + str(temp))
+            #createConfig()
+            self.text.AppendText('\nPlatzierungen letzter Spieltag:')
+            for i in range(len(userlist)+1):
+                temp = bot.getLatestStanding(self.authTokenFromLogin, i+1, 'no')
+                if(str(temp) != '-1'):
+                    # smResult = bot.sendMoney(self.authTokenFromLogin, str(userlist[i+1]), '10000', 'Praemie fuer den ' +str(i+1)+ '. Platz!')
+                    self.text.AppendText('\n' + str(temp))
 
         self.panel.Refresh()
 
