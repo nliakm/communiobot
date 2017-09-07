@@ -7,6 +7,7 @@ import json
 from myConfigParser3_5 import createConfig
 from myConfigParser3_5 import updateConfig
 from myConfigParser3_5 import readConfig
+from myConfigParser3_5 import updateConfigStaticRewards
 
 
 class Bot:
@@ -130,7 +131,8 @@ class Bot:
         # get IDs of all users
         jsonData = json.loads(requestStanding.text)
         tempid = ''
-        for id in jsonData.get('items'): # workaround to get id of object that stores all user ids
+        # workaround to get id of object that stores all user ids
+        for id in jsonData.get('items'):
             tempid = id
             counter = 0
         for id in jsonData['items'][tempid]['players']:
@@ -162,10 +164,13 @@ class Bot:
         counter = 1
         for item in jsonData['items']:
             if(counter == int(standing)):
-                data = {'userid': str(item['_embedded']['user']['id'])} # create json object with attribute userid 
-                data['standing'] = int(standing) # add attribute standing
-                data['lastPoints'] = int(item['lastPoints']) # add attribute lastPoints
-                self.placement_and_userids.append(data) # append json object to json
+                # create json object with attribute userid
+                data = {'userid': str(item['_embedded']['user']['id'])}
+                data['standing'] = int(standing)  # add attribute standing
+                # add attribute lastPoints
+                data['lastPoints'] = int(item['lastPoints'])
+                self.placement_and_userids.append(
+                    data)  # append json object to json
                 return str(standing) + '. Platz: ' + str(item['_embedded']['user']['name']) + '(' + str(item['lastPoints']) + ')'
             else:
                 counter = counter + 1
@@ -247,7 +252,10 @@ class MouseEventFrame(wx.Frame):
         # menu bar
         menuBar = wx.MenuBar()
         menu = wx.Menu()
-        multiplierMenuItem = menu.Append(wx.NewId(), 'Multiplikator anpassen', 'Den Multiplikator anpassen')
+        staticRewardsMenuItem = menu.Append(
+            wx.NewId(), 'Feste Praemien setzen', 'Setze die festen Praemien')
+        multiplierMenuItem = menu.Append(
+            wx.NewId(), 'Multiplikator anpassen', 'Den Multiplikator anpassen')
         exitMenuItem = menu.Append(wx.NewId(), "Beenden",
                                    "Programm beenden")
         menuBar.Append(menu, "&Datei")
@@ -265,7 +273,8 @@ class MouseEventFrame(wx.Frame):
         menuBar.Append(self.radioMenu, "&Modus")
 
         self.Bind(wx.EVT_MENU, self.onExit, exitMenuItem)
-        self.Bind(wx.EVT_MENU, self.onDialog, multiplierMenuItem)
+        self.Bind(wx.EVT_MENU, self.onStaticRewardsDialog, staticRewardsMenuItem)
+        self.Bind(wx.EVT_MENU, self.onMultiplierDialog, multiplierMenuItem)
         self.SetMenuBar(menuBar)
 
         self.welcomeLabel = wx.StaticText(
@@ -303,12 +312,22 @@ class MouseEventFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.clickTransaction, self.buttonTransaction)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClick, self.buttonLogin)
 
-    def onDialog(self, event):
+    def onMultiplierDialog(self, event):
         """"""
-        dlg = MyDialog()
+        dlg = SetMultiplierDialog()
         res = dlg.ShowModal()
         if res == wx.ID_OK:
-            updateConfig('config.ini', 'Punkte basiert', dlg.multiplierValue.GetValue())
+            updateConfig('config.ini', 'Punkte basiert',
+                         dlg.multiplierValue.GetValue())
+        dlg.Destroy()
+
+    def onStaticRewardsDialog(self, event):
+        """"""
+        dlg = SetStaticRewardsDialog()
+        res = dlg.ShowModal()
+        if res == wx.ID_OK:
+            for i in range(10):
+                updateConfigStaticRewards('config.ini', i+1, dlg.ticker_ctrls[i].GetValue())
         dlg.Destroy()
 
     def onExit(self, event):
@@ -337,9 +356,9 @@ class MouseEventFrame(wx.Frame):
             temp = bot.getLatestStanding(i + 1)
             if(str(temp) != '-1'):
                 self.text.AppendText('\n' + str(temp))
-        
+
         with open('standings.json', 'w') as outfile:
-            json.dump(bot.getPlacementAndUserIds(), outfile)                
+            json.dump(bot.getPlacementAndUserIds(), outfile)
 
     def getInformationsAfterLogin(self):
         # destroy login objects
@@ -371,7 +390,7 @@ class MouseEventFrame(wx.Frame):
         self.panel.Refresh()
 
 
-class MyDialog(wx.Dialog):
+class SetMultiplierDialog(wx.Dialog):
     """"""
 
     #----------------------------------------------------------------------
@@ -380,16 +399,35 @@ class MyDialog(wx.Dialog):
         wx.Dialog.__init__(self, None, title="Multiplikator", size=(200, 100))
         self.value = readConfig('config.ini', '1', 'pointbased')
         self.multiplierValue = wx.TextCtrl(self, value=self.value)
-        # self.comboBox1 = wx.ComboBox(self, 
-        #                              choices=['test1', 'test2'],
-        #                              value="")
+
         okBtn = wx.Button(self, wx.ID_OK)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.multiplierValue, 0, wx.ALL|wx.CENTER, 5)
-        sizer.Add(okBtn, 0, wx.ALL|wx.CENTER, 5)
+        sizer.Add(self.multiplierValue, 0, wx.ALL | wx.CENTER, 5)
+        sizer.Add(okBtn, 0, wx.ALL | wx.CENTER, 5)
         self.SetSizer(sizer)
 
+class SetStaticRewardsDialog(wx.Dialog):
+    """"""
+
+    #----------------------------------------------------------------------
+    def __init__(self):
+        """Constructor"""
+        wx.Dialog.__init__(self, None, title="Praemien setzen", size=(200, 600))
+        sizer = wx.BoxSizer(wx.VERTICAL)        
+        self.ticker_ctrls = {}
+        ticker_items = []
+        for i in range(10):
+            ticker_items.append(readConfig('config.ini', i+1, 'static'))
+        counter = 0
+        for item in ticker_items:
+            ctrl = wx.TextCtrl(self, value = item, name = item)
+            sizer.Add(ctrl, 0, wx.ALL | wx.CENTER, 5)
+            self.ticker_ctrls[counter] = ctrl
+            counter = counter + 1
+        okBtn = wx.Button(self, wx.ID_OK)              
+        sizer.Add(okBtn, 0, wx.ALL | wx.CENTER, 5)
+        self.SetSizer(sizer)
 if __name__ == '__main__':
     bot = Bot()
     app = wx.App()

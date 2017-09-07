@@ -4,7 +4,7 @@ import os
 def createConfig():
     if (not checkIfFileExists('config.ini')):
         config = configparser.ConfigParser()
-        config['Feste Praemien'] = {'1': '2000', '2': '1500', '3': '1000', '4': '500' }
+        config['Feste Praemien'] = {'1': '10000', '2': '9000', '3': '8000', '4': '7000', '5': '6000', '6': '5000', '7': '4000', '8': '3000', '9': '2000', '10': '1000'}
         config['Punkte basiert'] = {'Multiplikator': '1000'}
         with open('config.ini', 'w') as configfile:
             config.write(configfile)
@@ -21,6 +21,17 @@ def updateConfig(filename, section_name, valuelist):
         config.read(filename)
         if(section_name == 'Punkte basiert'):
             config['Punkte basiert']['Multiplikator'] = valuelist
+        with open('config.ini', 'w') as configfile:
+            config.write(configfile)
+        return True
+    return False
+
+def updateConfigStaticRewards(filename, placement, value):
+    if (checkIfFileExists(filename)):
+        config = configparser.ConfigParser()
+        config.sections()
+        config.read(filename)
+        config['Feste Praemien'][str(placement)] = str(value)
         with open('config.ini', 'w') as configfile:
             config.write(configfile)
         return True
