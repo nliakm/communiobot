@@ -202,7 +202,7 @@ class Bot:
     def executeTransaction(self, configfile):
         for i in self.placement_and_userids:
             temp = readConfig('config.ini', str(self.placement_and_userids[i]))
-            if(int(temp) > 0):
+            if(int(temp) > 0): # ignoring values lower 1
                 if(self.sendMoney(self.getCommunityId(), str(i), temp, str(self.placement_and_userids[i]) + '. Platz.') == 200):
                     frame.text.AppendText('\nTransaktion fuer ' + str(self.placement_and_userids[i]) + '. Platz erfolgreich!')
                 else: frame.text.AppendText('\nTransaktion fuer ' + str(self.placement_and_userids[i]) + '. Platz fehlgeschlagen!')
@@ -280,9 +280,12 @@ class MouseEventFrame(wx.Frame):
                 self.text.AppendText('\n' + str(temp))
 
     def getInformationsAfterLogin(self):
+        # destroy login objects
         self.buttonLogin.Destroy()
         self.usernameText.Destroy()
         self.passwordText.Destroy()
+
+        # show welcome information
         self.welcomeLabel.Enable()
         self.buttonTransaction.Enable()
         self.buttonTransaction.Show(True)
