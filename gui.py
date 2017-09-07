@@ -17,7 +17,8 @@ class Bot:
         self.userid = ''  # userid of logged in user
         self.communityid = ''  # id of community from logged in user
         self.list_userids = []  # list of all userids in community of logged in user
-        self.placement_and_userids = {}
+        self.placement_and_userids = []  # dict with userid as key and placement as value
+        self.leaguename = ''  # name of community
 
         # HTTP Header parameters
         self.authToken = ''  # authtoken to perform http request as a logged in user
@@ -44,44 +45,47 @@ class Bot:
             ('password', password),
         ]
 
-        requestLogin = self.session.post(
-            'https://api.comunio.de/login', headers=headersLogin, data=dataLogin)
+        try:
+            requestLogin = self.session.post(
+                'https://api.comunio.de/login', headers=headersLogin, data=dataLogin)
 
-        # extract authtoken to be able to do requests as a logged in user
-        if(requestLogin.status_code < 400):
+            if not requestLogin.status_code // 100 == 2:
+                frame.text.AppendText(
+                    'Login fehlgeschlagen!\nError: Unexpected response {}'.format(requestLogin))
+                return 'Error: Unexpected response {}'.format(requestLogin)
+
             jsonData = json.loads(requestLogin.text)
+            frame.text.AppendText(
+                '\nLogin erfolgleich!\nZiehe Informationen...')
             self.authToken = str(jsonData['access_token'])
-            if(self.authToken == ''):
-                frame.text.AppendText('Login fehlgeschlagen!')
-                return requestLogin.status_code
-            else:
-                frame.text.AppendText('Login erfolgleich!\nZiehe Informationen...')
-                return requestLogin.status_code                
-        else:
-            frame.text.AppendText('Login fehlgeschlagen!')
-            return requestLogin.status_code            
+            self.getUserAndLeagueInfo()  # get username, userid, communityid and leaguename
+            frame.getInformationsAfterLogin()  # update gui after login
+            createConfig()  # if no config.ini exists, default config will be created
+            return self.authToken
+
+        except requests.exceptions.RequestException as e:
+            frame.text.AppendText(
+                'Login fehlgeschlagen!\nError: Unexpected response {}'.format(e))
+            return 'Error: {}'.format(e)
 
     def getAuthToken(self):
         return self.authToken
 
-    def getCommunityId(self):
-        headersInfo = {
-            'Origin': self.origin,
-            'Accept-Encoding': self.accept_encoding,
-            'Accept-Language': 'en-EN',
-            'Authorization': 'Bearer ' + self.authToken,
-            'Accept': 'application/json, text/plain, */*',
-            'Referer': 'http://www.comunio.de/dashboard',
-            'User-Agent': self.user_agent,
-            'Connection': self.connection,
-        }
+    def getPlacementAndUserIds(self):
+        # jsonData = json.dumps(self.placement_and_userids)
+        # return jsonData
+        return self.placement_and_userids
 
-        requestInfo = requests.get(
-            'https://api.comunio.de/', headers=headersInfo)
-        jsonData = json.loads(requestInfo.text)
-        return jsonData['community']['id']
+    def getUserName(self):
+        return self.username
 
     def getUserId(self):
+        return self.userid
+
+    def getCommunityId(self):
+        return self.communityid
+
+    def getUserAndLeagueInfo(self):
         headersInfo = {
             'Origin': self.origin,
             'Accept-Encoding': self.accept_encoding,
@@ -95,8 +99,14 @@ class Bot:
 
         requestInfo = requests.get(
             'https://api.comunio.de/', headers=headersInfo)
+
         jsonData = json.loads(requestInfo.text)
-        return jsonData['user']['id']
+        self.username = jsonData['user']['name']
+        self.userid = jsonData['user']['id']
+        self.leaguename = jsonData['community']['name']
+        self.communityid = jsonData['community']['id']
+
+        return requestInfo.status_code
 
     def getAllUserIds(self):
         headersStandings = {
@@ -114,21 +124,21 @@ class Bot:
             ('period', 'season'),
         )
 
-        requestStanding = requests.get('https://api.comunio.de/communities/' + self.getCommunityId(
-        ) + '/standings', headers=headersStandings, params=paramsStandings)
+        requestStanding = requests.get('https://api.comunio.de/communities/' + self.communityid +
+                                       '/standings', headers=headersStandings, params=paramsStandings)
 
         # get IDs of all users
         jsonData = json.loads(requestStanding.text)
         tempid = ''
-        for id in jsonData.get('items'):
+        for id in jsonData.get('items'): # workaround to get id of object that stores all user ids
             tempid = id
             counter = 0
-        for id in jsonData.get('items').get(tempid).get('players'):
+        for id in jsonData['items'][tempid]['players']:
             counter = counter + 1
             self.list_userids.append(str(id['id']))
         return self.list_userids
 
-    def getLatestStanding(self, authtoken, standing):
+    def getLatestStanding(self, standing):
         headers = {
             'Origin': self.origin,
             'Accept-Encoding': self.accept_encoding,
@@ -146,16 +156,16 @@ class Bot:
         )
 
         requestLatestStanding = requests.get(
-            'https://api.comunio.de/communities/' + self.getCommunityId() + '/standings', headers=headers, params=params)
+            'https://api.comunio.de/communities/' + self.communityid + '/standings', headers=headers, params=params)
 
         jsonData = json.loads(requestLatestStanding.text)
         counter = 1
         for item in jsonData['items']:
             if(counter == int(standing)):
-                # if(str(sendYoN) == 'yes'):
-                #     smResult = bot.sendMoney(self.authToken, str(item['_embedded']['user']['id']), '10000', 'Praemie fuer den ' +str(standing)+ '. Platz!')
-                self.placement_and_userids[str(
-                    item['_embedded']['user']['id'])] = int(standing)
+                data = {'userid': str(item['_embedded']['user']['id'])} # create json object with attribute userid 
+                data['standing'] = int(standing) # add attribute standing
+                data['lastPoints'] = int(item['lastPoints']) # add attribute lastPoints
+                self.placement_and_userids.append(data) # append json object to json
                 return str(standing) + '. Platz: ' + str(item['_embedded']['user']['name']) + '(' + str(item['lastPoints']) + ')'
             else:
                 counter = counter + 1
@@ -195,20 +205,32 @@ class Bot:
         }
 
         dataMoney = '{"amount":' + amount + ',"reason":"' + reason + '"}'
-        requestMoney = requests.post('https://api.comunio.de/communities/' + communityid +
+        requestMoney = requests.post('https://api.comunio.de/communities/' + self.communityid +
                                      '/users/' + userid + '/penalties', headers=headersMoney, data=dataMoney)
         return requestMoney.status_code
 
     def executeTransaction(self, configfile):
         for i in self.placement_and_userids:
-            temp = readConfig('config.ini', str(self.placement_and_userids[i]))
-            if(int(temp) > 0): # ignoring values lower 1
-                if(self.sendMoney(self.getCommunityId(), str(i), temp, str(self.placement_and_userids[i]) + '. Platz.') == 200):
-                    frame.text.AppendText('\nTransaktion fuer ' + str(self.placement_and_userids[i]) + '. Platz erfolgreich!')
-                else: frame.text.AppendText('\nTransaktion fuer ' + str(self.placement_and_userids[i]) + '. Platz fehlgeschlagen!')
-
-    def getPlacementAndUserIds(self):
-        return self.placement_and_userids
+            tempPlacement = str(self.placement_and_userids[i])
+            tempUserid = str(i)
+            if(self.GetMenuBar().FindItemById(self.staticReward.GetId()).IsChecked()):
+                temp = readConfig('config.ini', tempPlacement, 'static')
+                if(int(temp) > 0):  # ignoring values lower 1
+                    if(self.sendMoney(self.communityid, tempUserid, temp, tempPlacement + '. Platz.') == 200):
+                        frame.text.AppendText(
+                            '\nTransaktion fuer ' + tempPlacement + '. Platz erfolgreich!')
+                    else:
+                        frame.text.AppendText(
+                            '\nTransaktion fuer ' + tempPlacement + '. Platz fehlgeschlagen!')
+            elif(self.GetMenuBar().FindItemById(self.multiplierReward.GetId()).IsChecked()):
+                temp = readConfig('config.ini', tempPlacement, 'pointbased')
+                if(int(temp) > 0):  # ignoring values lower 1
+                    if(self.sendMoney(self.communityid, tempUserid, temp, tempPlacement + '. Platz.') == 200):
+                        frame.text.AppendText(
+                            '\nTransaktion fuer ' + tempPlacement + '. Platz erfolgreich!')
+                    else:
+                        frame.text.AppendText(
+                            '\nTransaktion fuer ' + tempPlacement + '. Platz fehlgeschlagen!')
 
 
 class MouseEventFrame(wx.Frame):
@@ -216,10 +238,35 @@ class MouseEventFrame(wx.Frame):
         self.authTokenFromLogin = ''
         self.communityid = ''
         self.userid = ''
+        self.username = ''
         self.userlist = []
 
-        wx.Frame.__init__(self, parent, id, 'comuniobot', size=(500, 500))
+        wx.Frame.__init__(self, parent, id, 'comuniobot', size=(300, 405))
         self.panel = wx.Panel(self)
+
+        # menu bar
+        menuBar = wx.MenuBar()
+        menu = wx.Menu()
+        multiplierMenuItem = menu.Append(wx.NewId(), 'Multiplikator anpassen', 'Den Multiplikator anpassen')
+        exitMenuItem = menu.Append(wx.NewId(), "Beenden",
+                                   "Programm beenden")
+        menuBar.Append(menu, "&Datei")
+
+        self.radioMenu = wx.Menu()
+        self.staticReward = self.radioMenu.Append(wx.NewId(), "Feste Praemien",
+                                                  "Die Spieler bekommen je nach Platzierung feste Betraege",
+                                                  wx.ITEM_RADIO)
+        self.multiplierReward = self.radioMenu.Append(wx.NewId(), "Punkte basiert",
+                                                      "Punkte als Multiplikator eines festen Betrags",
+                                                      wx.ITEM_RADIO)
+        # psiItem = radioMenu.Append(wx.NewId(), "psi",
+        #                           "a simple Python shell using wxPython as GUI",
+        #                           wx.ITEM_RADIO)
+        menuBar.Append(self.radioMenu, "&Modus")
+
+        self.Bind(wx.EVT_MENU, self.onExit, exitMenuItem)
+        self.Bind(wx.EVT_MENU, self.onDialog, multiplierMenuItem)
+        self.SetMenuBar(menuBar)
 
         self.welcomeLabel = wx.StaticText(
             self.panel, pos=(5, 15), size=(100, 20))
@@ -256,6 +303,18 @@ class MouseEventFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.clickTransaction, self.buttonTransaction)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClick, self.buttonLogin)
 
+    def onDialog(self, event):
+        """"""
+        dlg = MyDialog()
+        res = dlg.ShowModal()
+        if res == wx.ID_OK:
+            updateConfig('config.ini', 'Punkte basiert', dlg.multiplierValue.GetValue())
+        dlg.Destroy()
+
+    def onExit(self, event):
+        """"""
+        self.Close()
+
     def clickTransaction(self, event):
         bot.executeTransaction('config.ini')
 
@@ -275,9 +334,12 @@ class MouseEventFrame(wx.Frame):
     def printPlacement(self):
         self.text.AppendText('\nPlatzierungen letzter Spieltag:')
         for i in range(len(self.userlist) + 1):
-            temp = bot.getLatestStanding(self.authTokenFromLogin, i + 1)
+            temp = bot.getLatestStanding(i + 1)
             if(str(temp) != '-1'):
                 self.text.AppendText('\n' + str(temp))
+        
+        with open('standings.json', 'w') as outfile:
+            json.dump(bot.getPlacementAndUserIds(), outfile)                
 
     def getInformationsAfterLogin(self):
         # destroy login objects
@@ -285,37 +347,48 @@ class MouseEventFrame(wx.Frame):
         self.usernameText.Destroy()
         self.passwordText.Destroy()
 
-        # show welcome information
-        self.welcomeLabel.Enable()
-        self.buttonTransaction.Enable()
-        self.buttonTransaction.Show(True)
-
         # get ids
         self.communityid = bot.getCommunityId()
         self.userid = bot.getUserId()
         self.userlist = bot.getAllUserIds()
 
-        # self.moneyUserId.SetItems(self.userlist)  # add userids to combobox
-
+        # show welcome information
+        self.welcomeLabel.Enable()
+        self.buttonTransaction.Enable()
+        self.buttonTransaction.Show(True)
         self.text.AppendText(
             '\nCommunity ID: ' + self.communityid + '\nEigene User ID: ' + self.userid)
         self.welcomeLabel.SetLabelText(
-            'Willkommen, Nummer ' + str(self.userid))
+            'Willkommen, ' + str(bot.getUserName() + '!'))
+        # self.moneyUserId.SetItems(self.userlist)  # add userids to combobox
+        self.printPlacement()  # print placement of last matchday in output console
 
     def OnButtonClick(self, event):
-        return_code = bot.doLogin(self.usernameText.GetValue(), self.passwordText.GetValue()) # execute login
-        self.authTokenFromLogin = bot.getAuthToken() # get authtoken
-
-        if(return_code == 200):
-            self.getInformationsAfterLogin()
-            self.printPlacement()
-            createConfig()  # if no config.ini exists, default config will be created            
-        else:
-            wx.MessageBox('Login fehlgeschlagen\nBitte erneut versuchen!', 'Fehler!',
-                          wx.OK | wx.ICON_ERROR, self.panel)
+        bot.doLogin(self.usernameText.GetValue(),
+                    self.passwordText.GetValue())  # execute login
+        self.authTokenFromLogin = bot.getAuthToken()  # get authtoken
 
         self.panel.Refresh()
 
+
+class MyDialog(wx.Dialog):
+    """"""
+
+    #----------------------------------------------------------------------
+    def __init__(self):
+        """Constructor"""
+        wx.Dialog.__init__(self, None, title="Multiplikator", size=(200, 100))
+        self.value = readConfig('config.ini', '1', 'pointbased')
+        self.multiplierValue = wx.TextCtrl(self, value=self.value)
+        # self.comboBox1 = wx.ComboBox(self, 
+        #                              choices=['test1', 'test2'],
+        #                              value="")
+        okBtn = wx.Button(self, wx.ID_OK)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.multiplierValue, 0, wx.ALL|wx.CENTER, 5)
+        sizer.Add(okBtn, 0, wx.ALL|wx.CENTER, 5)
+        self.SetSizer(sizer)
 
 if __name__ == '__main__':
     bot = Bot()
