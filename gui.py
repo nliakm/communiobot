@@ -22,6 +22,7 @@ class Bot:
         self.list_userids = []  # list of all userids in community of logged in user
         self.placement_and_userids = []  # dict with userid as key and placement as value
         self.leaguename = ''  # name of community
+        self.nrOfRewardedPlayers = 4 # number of players that will get a reward (descending)
 
         # HTTP Header parameters
         self.authToken = ''  # authtoken to perform http request as a logged in user
@@ -241,10 +242,10 @@ class Bot:
     #----------------------------------------------------------------------
     def executeTransaction(self, configfile):
         """"""
-        for i in self.placement_and_userids:
-            tempPlacement = str(self.placement_and_userids[i])
-            tempUserid = str(i)
-            if(self.GetMenuBar().FindItemById(self.staticReward.GetId()).IsChecked()):
+        for entry in self.placement_and_userids:
+            tempPlacement = str(entry['standing'])
+            tempUserid = str(entry['userid'])
+            if(frame.GetMenuBar().FindItemById(frame.staticReward.GetId()).IsChecked()): # if radiobutton 'feste pramien' is checked
                 temp = readConfig('config.ini', tempPlacement, 'static')
                 if(int(temp) > 0):  # ignoring values lower 1
                     if(self.sendMoney(self.communityid, tempUserid, temp, tempPlacement + '. Platz.') == 200):
@@ -253,10 +254,10 @@ class Bot:
                     else:
                         frame.text.AppendText(
                             '\nTransaktion fuer ' + tempPlacement + '. Platz fehlgeschlagen!')
-            elif(self.GetMenuBar().FindItemById(self.multiplierReward.GetId()).IsChecked()):
-                temp = readConfig('config.ini', tempPlacement, 'pointbased')
+            elif(frame.GetMenuBar().FindItemById(frame.multiplierReward.GetId()).IsChecked()): # if radiobutton 'punkte basiert' is checked
+                temp = readConfig('config.ini', tempPlacement, 'static')
                 if(int(temp) > 0):  # ignoring values lower 1
-                    if(self.sendMoney(self.communityid, tempUserid, temp, tempPlacement + '. Platz.') == 200):
+                    if(self.sendMoney(self.communityid, tempUserid, temp*int(readConfig('config.ini', 1, 'pointbased')), tempPlacement + '. Platz.') == 200):
                         frame.text.AppendText(
                             '\nTransaktion fuer ' + tempPlacement + '. Platz erfolgreich!')
                     else:
@@ -279,6 +280,7 @@ class MouseEventFrame(wx.Frame):
         # menu bar
         menuBar = wx.MenuBar()
         menu = wx.Menu()
+        maxPlayerGetRewardMenuItem = menu.Append(wx.NewId(), 'Letzte Platzierung fuer Praemie', 'Letzte Platzierung, die eine Praemie erhaelt')
         staticRewardsMenuItem = menu.Append(
             wx.NewId(), 'Feste Praemien setzen', 'Setze die festen Praemien')
         multiplierMenuItem = menu.Append(
@@ -300,6 +302,7 @@ class MouseEventFrame(wx.Frame):
         menuBar.Append(self.radioMenu, "&Modus")
 
         self.Bind(wx.EVT_MENU, self.onExit, exitMenuItem)
+        self.Bind(wx.EVT_MENU, self.onMaxPlayGetRewardDialog, maxPlayerGetRewardMenuItem)
         self.Bind(wx.EVT_MENU, self.onStaticRewardsDialog, staticRewardsMenuItem)
         self.Bind(wx.EVT_MENU, self.onMultiplierDialog, multiplierMenuItem)
         self.SetMenuBar(menuBar)
@@ -349,6 +352,14 @@ class MouseEventFrame(wx.Frame):
                          dlg.multiplierValue.GetValue())
         dlg.Destroy()
 
+    #----------------------------------------------------------------------    
+    def onMaxPlayGetRewardDialog(self, event):
+        """"""
+        dlg = MyDialog()
+        res = dlg.ShowModal()
+        if res == wx.ID_OK:
+            updateConfig('config.ini', 'maxPlayerReward', dlg.comboBox1.GetValue())
+        dlg.Destroy()
     #----------------------------------------------------------------------
     def onStaticRewardsDialog(self, event):
         """"""
@@ -432,7 +443,7 @@ class MouseEventFrame(wx.Frame):
 ########################################################################
 class SetMultiplierDialog(wx.Dialog):
     """"""
-    
+
     #----------------------------------------------------------------------
     def __init__(self):
         """Constructor"""
@@ -454,7 +465,7 @@ class SetStaticRewardsDialog(wx.Dialog):
     #----------------------------------------------------------------------
     def __init__(self):
         """Constructor"""
-        wx.Dialog.__init__(self, None, title="Praemien setzen", size=(200, 600))
+        wx.Dialog.__init__(self, None, title="Praemien setzen", size=(230, 470))
         sizer = wx.BoxSizer(wx.VERTICAL)        
         self.ticker_ctrls = {}
         ticker_items = []
@@ -470,6 +481,27 @@ class SetStaticRewardsDialog(wx.Dialog):
         sizer.Add(okBtn, 0, wx.ALL | wx.CENTER, 5)
         self.SetSizer(sizer)
 
+########################################################################
+class MyDialog(wx.Dialog):
+    """"""
+
+    #----------------------------------------------------------------------
+    def __init__(self):
+        """Constructor"""
+        wx.Dialog.__init__(self, None, title="Platzierung", size=(100, 100))
+        self.value = readConfig('config.ini', '1', 'maxPlayerReward')
+        self.comboBox1 = wx.ComboBox(self, 
+                                     choices=['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+                                     value=self.value)
+        self.comboBox1.SetEditable(False)
+        okBtn = wx.Button(self, wx.ID_OK)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.comboBox1, 0, wx.ALL|wx.CENTER, 5)
+        sizer.Add(okBtn, 0, wx.ALL|wx.CENTER, 5)
+        self.SetSizer(sizer)
+
+#----------------------------------------------------------------------
 if __name__ == '__main__':
     bot = Bot()
     app = wx.App()
