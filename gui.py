@@ -9,10 +9,12 @@ from myConfigParser3_5 import updateConfig
 from myConfigParser3_5 import readConfig
 from myConfigParser3_5 import updateConfigStaticRewards
 
-
+########################################################################
 class Bot:
+    """"""
+    #----------------------------------------------------------------------
     def __init__(self):
-
+        """Constructor"""
         self.username = ''
         self.password = ''
         self.userid = ''  # userid of logged in user
@@ -28,7 +30,9 @@ class Bot:
         self.accept_encoding = 'gzip, deflate, br'
         self.connection = 'keep-alive'
 
+    #----------------------------------------------------------------------
     def doLogin(self, username, password):
+        """"""
         self.session = requests.Session()
         headersLogin = {
             'Origin': self.origin,
@@ -69,24 +73,36 @@ class Bot:
                 'Login fehlgeschlagen!\nError: Unexpected response {}'.format(e))
             return 'Error: {}'.format(e)
 
+    #----------------------------------------------------------------------
     def getAuthToken(self):
+        """"""
         return self.authToken
 
+    #----------------------------------------------------------------------
     def getPlacementAndUserIds(self):
+        """"""
         # jsonData = json.dumps(self.placement_and_userids)
         # return jsonData
         return self.placement_and_userids
 
+    #----------------------------------------------------------------------
     def getUserName(self):
+        """"""
         return self.username
-
+    
+    #----------------------------------------------------------------------
     def getUserId(self):
+        """"""
         return self.userid
 
+    #----------------------------------------------------------------------
     def getCommunityId(self):
+        """"""
         return self.communityid
 
+    #----------------------------------------------------------------------
     def getUserAndLeagueInfo(self):
+        """"""
         headersInfo = {
             'Origin': self.origin,
             'Accept-Encoding': self.accept_encoding,
@@ -109,7 +125,9 @@ class Bot:
 
         return requestInfo.status_code
 
+    #----------------------------------------------------------------------
     def getAllUserIds(self):
+        """"""
         headersStandings = {
             'Origin': self.origin,
             'Accept-Encoding': self.accept_encoding,
@@ -140,7 +158,9 @@ class Bot:
             self.list_userids.append(str(id['id']))
         return self.list_userids
 
+    #----------------------------------------------------------------------
     def getLatestStanding(self, standing):
+        """"""
         headers = {
             'Origin': self.origin,
             'Accept-Encoding': self.accept_encoding,
@@ -176,7 +196,9 @@ class Bot:
                 counter = counter + 1
         return -1
 
+    #----------------------------------------------------------------------
     def postText(self):
+        """"""
         headersText = {
             'Authorization': 'Bearer ' + self.authToken,
             'Origin': self.origin,
@@ -196,7 +218,9 @@ class Bot:
         requestNachricht = self.session.post('https://api.comunio.de/communities/' +
                                              self.communityid + '/users/12578395/news', headers=headersText, data=dataText)
 
+    #----------------------------------------------------------------------
     def sendMoney(self, communityid, userid, amount, reason):
+        """"""
         headersMoney = {
             'Authorization': 'Bearer ' + self.authToken,
             'Origin': self.origin,
@@ -214,7 +238,9 @@ class Bot:
                                      '/users/' + userid + '/penalties', headers=headersMoney, data=dataMoney)
         return requestMoney.status_code
 
+    #----------------------------------------------------------------------
     def executeTransaction(self, configfile):
+        """"""
         for i in self.placement_and_userids:
             tempPlacement = str(self.placement_and_userids[i])
             tempUserid = str(i)
@@ -237,8 +263,9 @@ class Bot:
                         frame.text.AppendText(
                             '\nTransaktion fuer ' + tempPlacement + '. Platz fehlgeschlagen!')
 
-
+########################################################################
 class MouseEventFrame(wx.Frame):
+    """Constructor"""
     def __init__(self, parent, id):
         self.authTokenFromLogin = ''
         self.communityid = ''
@@ -311,7 +338,8 @@ class MouseEventFrame(wx.Frame):
         #self.Bind(wx.EVT_BUTTON, self.myClick, self.buttonSendMoney)
         self.Bind(wx.EVT_BUTTON, self.clickTransaction, self.buttonTransaction)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClick, self.buttonLogin)
-
+    
+    #----------------------------------------------------------------------
     def onMultiplierDialog(self, event):
         """"""
         dlg = SetMultiplierDialog()
@@ -321,6 +349,7 @@ class MouseEventFrame(wx.Frame):
                          dlg.multiplierValue.GetValue())
         dlg.Destroy()
 
+    #----------------------------------------------------------------------
     def onStaticRewardsDialog(self, event):
         """"""
         dlg = SetStaticRewardsDialog()
@@ -330,14 +359,19 @@ class MouseEventFrame(wx.Frame):
                 updateConfigStaticRewards('config.ini', i+1, dlg.ticker_ctrls[i].GetValue())
         dlg.Destroy()
 
+    #----------------------------------------------------------------------
     def onExit(self, event):
         """"""
         self.Close()
 
+    #----------------------------------------------------------------------
     def clickTransaction(self, event):
+        """"""
         bot.executeTransaction('config.ini')
 
+    #----------------------------------------------------------------------
     def myClick(self, event):
+        """"""
         if(str(self.moneyUserId.GetSelection()) != '-1'):
             result = bot.sendMoney(str(self.communityid), str(self.moneyUserId.GetValue()), str(
                 self.moneyAmount.GetValue()), self.moneyReason.GetValue())
@@ -350,7 +384,9 @@ class MouseEventFrame(wx.Frame):
             wx.MessageBox('Keine User ID ausgewaehlt!', 'Fehler!',
                           wx.OK | wx.ICON_ERROR, self.panel)
 
+    #----------------------------------------------------------------------
     def printPlacement(self):
+        """"""
         self.text.AppendText('\nPlatzierungen letzter Spieltag:')
         for i in range(len(self.userlist) + 1):
             temp = bot.getLatestStanding(i + 1)
@@ -360,7 +396,9 @@ class MouseEventFrame(wx.Frame):
         with open('standings.json', 'w') as outfile:
             json.dump(bot.getPlacementAndUserIds(), outfile)
 
+    #----------------------------------------------------------------------
     def getInformationsAfterLogin(self):
+        """"""
         # destroy login objects
         self.buttonLogin.Destroy()
         self.usernameText.Destroy()
@@ -382,17 +420,19 @@ class MouseEventFrame(wx.Frame):
         # self.moneyUserId.SetItems(self.userlist)  # add userids to combobox
         self.printPlacement()  # print placement of last matchday in output console
 
+    #----------------------------------------------------------------------
     def OnButtonClick(self, event):
+        """"""
         bot.doLogin(self.usernameText.GetValue(),
                     self.passwordText.GetValue())  # execute login
         self.authTokenFromLogin = bot.getAuthToken()  # get authtoken
 
         self.panel.Refresh()
 
-
+########################################################################
 class SetMultiplierDialog(wx.Dialog):
     """"""
-
+    
     #----------------------------------------------------------------------
     def __init__(self):
         """Constructor"""
@@ -407,6 +447,7 @@ class SetMultiplierDialog(wx.Dialog):
         sizer.Add(okBtn, 0, wx.ALL | wx.CENTER, 5)
         self.SetSizer(sizer)
 
+########################################################################
 class SetStaticRewardsDialog(wx.Dialog):
     """"""
 
@@ -428,6 +469,7 @@ class SetStaticRewardsDialog(wx.Dialog):
         okBtn = wx.Button(self, wx.ID_OK)              
         sizer.Add(okBtn, 0, wx.ALL | wx.CENTER, 5)
         self.SetSizer(sizer)
+
 if __name__ == '__main__':
     bot = Bot()
     app = wx.App()
