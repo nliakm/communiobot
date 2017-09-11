@@ -4,10 +4,10 @@ import configparser
 import re
 import requests
 import json
-from myConfigParser3_5 import createConfig
-from myConfigParser3_5 import updateConfig
-from myConfigParser3_5 import readConfig
-from myConfigParser3_5 import updateConfigStaticRewards
+from ConfigHandler import createConfig
+from ConfigHandler import updateConfig
+from ConfigHandler import readConfig
+from ConfigHandler import updateConfigStaticRewards
 
 ########################################################################
 

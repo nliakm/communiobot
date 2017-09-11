@@ -2,6 +2,11 @@
 Programm zur automatisierter Vergabe von Prämien nach einem Spieltag
 
 <h1>Verwendung</h1>
+<h2>Voraussetzungen</h2>
+Auf dem System muss Python 3.x installiert sein.
+Als Zusatzmodule müssen requests und wxPython (https://github.com/wxWidgets/Phoenix/blob/master/README.rst#prerequisites) installiert sein.
+<h2>Ausführung</h2>
+Das Projekt klonen und anschließend die Datei gui.py ausführen
 <h2>Login</h2>
 Zum Login einfach Benutzername und Passwort in die entsprechenden Felder eingeben und einloggen.
 Nach ein paar Sekunden wird es eine Rückmeldung geben, ob der Login erfolgreich war.
