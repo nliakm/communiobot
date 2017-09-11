@@ -1,3 +1,4 @@
+.vscode
 py3env/
 config.ini
 myConfigParser3_5.pyc
