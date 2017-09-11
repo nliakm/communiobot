@@ -25,8 +25,6 @@ class Bot:
         self.list_userids = []  # list of all userids in community of logged in user
         self.placement_and_userids = []  # dict with userid as key and placement as value
         self.leaguename = ''  # name of community
-        # number of players that will get a reward (descending)
-        self.nrOfRewardedPlayers = 4
 
         # HTTP Header parameters
         self.authToken = ''  # authtoken to perform http request as a logged in user
@@ -92,8 +90,6 @@ class Bot:
     #----------------------------------------------------------------------
     def getPlacementAndUserIds(self):
         """"""
-        # jsonData = json.dumps(self.placement_and_userids)
-        # return jsonData
         return self.placement_and_userids
 
     #----------------------------------------------------------------------
@@ -157,15 +153,12 @@ class Bot:
         requestStanding = requests.get('https://api.comunio.de/communities/' + self.communityid +
                                        '/standings', headers=headersStandings, params=paramsStandings)
 
-        # get IDs of all users
         jsonData = json.loads(requestStanding.text)
         tempid = ''
         # workaround to get id of object that stores all user ids
         for id in jsonData.get('items'):
             tempid = id
-            counter = 0
         for id in jsonData['items'][tempid]['players']:
-            counter = counter + 1
             self.list_userids.append(str(id['id']))
         return self.list_userids
 
@@ -191,44 +184,48 @@ class Bot:
         requestLatestStanding = requests.get(
             'https://api.comunio.de/communities/' + self.communityid + '/standings', headers=headers, params=params)
 
-        jsonData = json.loads(requestLatestStanding.text) # print jsonData
+        jsonData = json.loads(requestLatestStanding.text)  # print jsonData
 
-        # save user with points into dict
+        # save user with points into dict obj
         for item in jsonData['items']:
-            data = {'userid': str(item['_embedded']['user']['id'])} # create json object with attribute userid
-            data['totalPoints'] = int(item['totalPoints']) # add attribute totalPoints with value
+            # create json object with attribute userid
+            data = {'userid': str(item['_embedded']['user']['id'])}
+            # add attribute totalPoints with value
+            data['totalPoints'] = int(item['totalPoints'])
             self.placement_and_userids.append(
                 data)  # append json object to json
-            self.placement_and_userids = sorted(self.placement_and_userids, reverse=True) # sort by points
-        
+            self.placement_and_userids = sorted(
+                self.placement_and_userids, reverse=True)  # sort by points
+
         # output standings in output console
         counter = 0
         for entry in self.placement_and_userids:
             counter = counter + 1
-            frame.text.AppendText('\n' + str(counter) + '. Platz mit ' + str(entry['totalPoints']) + ' Punkten: ' + str(entry['userid']))
-        #return -1
+            frame.text.AppendText('\n' + str(counter) + '. Platz mit ' +
+                                  str(entry['totalPoints']) + ' Punkten: ' + str(entry['userid']))
+        # return -1
 
     #----------------------------------------------------------------------
-    def postText(self):
-        """"""
-        headersText = {
-            'Authorization': 'Bearer ' + self.authToken,
-            'Origin': self.origin,
-            'Accept-Encoding': self.accept_encoding,
-            'Accept-Language': 'de-DE,en-EN;q=0.9',
-            'User-Agent': self.user_agent,
-            'Content-Type': 'application/json;charset=UTF-8',
-            'Accept': 'application/json, text/plain, */*',
-            'Referer': 'http://www.comunio.de/newsEntry/',
-            'Connection': self.connection,
-        }
-        title = "Das ist ein Titel"
-        content = "Das ist der Inhalt</p>\\n<p>1. Zeile</p>\\n<p>2. Zeile"
-        dataText = '{"newsEntry":{"title":"' + title + \
-            '","message":{"text":"<p>' + content + \
-            '</p>"},"recipientId":null}}'
-        requestNachricht = self.session.post('https://api.comunio.de/communities/' +
-                                             self.communityid + '/users/12578395/news', headers=headersText, data=dataText)
+    # def postText(self):
+    #     """"""
+    #     headersText = {
+    #         'Authorization': 'Bearer ' + self.authToken,
+    #         'Origin': self.origin,
+    #         'Accept-Encoding': self.accept_encoding,
+    #         'Accept-Language': 'de-DE,en-EN;q=0.9',
+    #         'User-Agent': self.user_agent,
+    #         'Content-Type': 'application/json;charset=UTF-8',
+    #         'Accept': 'application/json, text/plain, */*',
+    #         'Referer': 'http://www.comunio.de/newsEntry/',
+    #         'Connection': self.connection,
+    #     }
+    #     title = "Das ist ein Titel"
+    #     content = "Das ist der Inhalt</p>\\n<p>1. Zeile</p>\\n<p>2. Zeile"
+    #     dataText = '{"newsEntry":{"title":"' + title + \
+    #         '","message":{"text":"<p>' + content + \
+    #         '</p>"},"recipientId":null}}'
+    #     requestNachricht = self.session.post('https://api.comunio.de/communities/' +
+    #                                          self.communityid + '/users/12578395/news', headers=headersText, data=dataText)
 
     #----------------------------------------------------------------------
     def sendMoney(self, communityid, userid, amount, reason):
@@ -253,11 +250,11 @@ class Bot:
     #----------------------------------------------------------------------
     def executeTransaction(self, configfile):
         """"""
-        counter = 1
+        counter = 1 # needed for display placement number in output console
         for entry in self.placement_and_userids:
+            # check last placement for reward
             if counter <= int(readConfig('config.ini', '1', 'maxPlayerReward')):
-                #tempPlacement = str(entry['standing'])
-                tempUserid = str(entry['userid'])
+                tempUserid = str(entry['userid'])  # userid in loop
                 # if radiobutton 'feste pramien' is checked
                 if(frame.GetMenuBar().FindItemById(frame.staticReward.GetId()).IsChecked()):
                     temp = readConfig('config.ini', counter, 'static')
@@ -317,9 +314,6 @@ class MouseEventFrame(wx.Frame):
         self.multiplierReward = self.radioMenu.Append(wx.NewId(), "Punkte basiert",
                                                       "Punkte als Multiplikator eines festen Betrags",
                                                       wx.ITEM_RADIO)
-        # psiItem = radioMenu.Append(wx.NewId(), "psi",
-        #                           "a simple Python shell using wxPython as GUI",
-        #                           wx.ITEM_RADIO)
         menuBar.Append(self.radioMenu, "&Modus")
 
         self.Bind(wx.EVT_MENU, self.onExit, exitMenuItem)
@@ -426,12 +420,8 @@ class MouseEventFrame(wx.Frame):
         """"""
         self.text.AppendText('\nPlatzierungen letzter Spieltag:')
         bot.getLatestPoints()
-        # for i in range(len(self.userlist)):
-        #     temp = bot.getLatestPoints()
-        #     if(str(temp) != '-1'):
-        #         self.text.AppendText('\n' + str(temp))
 
-        with open('standings.json', 'w') as outfile:
+        with open('standings.json', 'w') as outfile: # save standings into .json file
             json.dump(bot.getPlacementAndUserIds(), outfile)
 
     #----------------------------------------------------------------------
