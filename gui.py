@@ -9,8 +9,6 @@ from myConfigParser3_5 import createConfig
 from myConfigParser3_5 import updateConfig
 from myConfigParser3_5 import readConfig
 from myConfigParser3_5 import updateConfigStaticRewards
-from operator import itemgetter, attrgetter, methodcaller
-from collections import defaultdict
 
 ########################################################################
 =======
