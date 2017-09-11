@@ -8,11 +8,16 @@ from myConfigParser3_5 import createConfig
 from myConfigParser3_5 import updateConfig
 from myConfigParser3_5 import readConfig
 from myConfigParser3_5 import updateConfigStaticRewards
+from operator import itemgetter, attrgetter, methodcaller
+from collections import defaultdict
 
 ########################################################################
+
+
 class Bot:
     """"""
     #----------------------------------------------------------------------
+
     def __init__(self):
         """Constructor"""
         self.username = ''
@@ -22,7 +27,8 @@ class Bot:
         self.list_userids = []  # list of all userids in community of logged in user
         self.placement_and_userids = []  # dict with userid as key and placement as value
         self.leaguename = ''  # name of community
-        self.nrOfRewardedPlayers = 4 # number of players that will get a reward (descending)
+        # number of players that will get a reward (descending)
+        self.nrOfRewardedPlayers = 4
 
         # HTTP Header parameters
         self.authToken = ''  # authtoken to perform http request as a logged in user
@@ -54,10 +60,17 @@ class Bot:
         try:
             requestLogin = self.session.post(
                 'https://api.comunio.de/login', headers=headersLogin, data=dataLogin)
+            print requestLogin.text
+            requestLogin.encoding = 'utf-8'
 
             if not requestLogin.status_code // 100 == 2:
+                errorData = json.loads(requestLogin.text)
                 frame.text.AppendText(
                     'Login fehlgeschlagen!\nError: Unexpected response {}'.format(requestLogin))
+                # errorText = errorData['error_description'].decode('latin-1').encode('utf-8')
+                # try: frame.text.AppendText(str(errorText))
+                # except KeyError:
+                #     frame.text.AppendText('Login fehlgeschlagen!\nError: Unexpected response {}'.format(requestLogin))
                 return 'Error: Unexpected response {}'.format(requestLogin)
 
             jsonData = json.loads(requestLogin.text)
@@ -90,7 +103,7 @@ class Bot:
     def getUserName(self):
         """"""
         return self.username
-    
+
     #----------------------------------------------------------------------
     def getUserId(self):
         """"""
@@ -156,11 +169,12 @@ class Bot:
             counter = 0
         for id in jsonData['items'][tempid]['players']:
             counter = counter + 1
+            # print str(id['id'])
             self.list_userids.append(str(id['id']))
         return self.list_userids
 
     #----------------------------------------------------------------------
-    def getLatestStanding(self, standing):
+    def getLatestPoints(self):
         """"""
         headers = {
             'Origin': self.origin,
@@ -181,21 +195,22 @@ class Bot:
         requestLatestStanding = requests.get(
             'https://api.comunio.de/communities/' + self.communityid + '/standings', headers=headers, params=params)
 
-        jsonData = json.loads(requestLatestStanding.text)
-        counter = 1
+        jsonData = json.loads(requestLatestStanding.text) # print jsonData
+
+        # save user with points into dict
         for item in jsonData['items']:
-            if(counter == int(standing)):
-                # create json object with attribute userid
-                data = {'userid': str(item['_embedded']['user']['id'])}
-                data['standing'] = int(standing)  # add attribute standing
-                # add attribute lastPoints
-                data['lastPoints'] = int(item['lastPoints'])
-                self.placement_and_userids.append(
-                    data)  # append json object to json
-                return str(standing) + '. Platz: ' + str(item['_embedded']['user']['name']) + '(' + str(item['lastPoints']) + ')'
-            else:
-                counter = counter + 1
-        return -1
+            data = {'userid': str(item['_embedded']['user']['id'])} # create json object with attribute userid
+            data['totalPoints'] = int(item['totalPoints']) # add attribute totalPoints with value
+            self.placement_and_userids.append(
+                data)  # append json object to json
+            self.placement_and_userids = sorted(self.placement_and_userids, reverse=True) # sort by points
+        
+        # output standings in output console
+        counter = 0
+        for entry in self.placement_and_userids:
+            counter = counter + 1
+            frame.text.AppendText('\n' + str(counter) + '. Platz mit ' + str(entry['totalPoints']) + ' Punkten: ' + str(entry['userid']))
+        #return -1
 
     #----------------------------------------------------------------------
     def postText(self):
@@ -242,31 +257,38 @@ class Bot:
     #----------------------------------------------------------------------
     def executeTransaction(self, configfile):
         """"""
+        counter = 1
         for entry in self.placement_and_userids:
-            tempPlacement = str(entry['standing'])
+            #tempPlacement = str(entry['standing'])
             tempUserid = str(entry['userid'])
-            if(frame.GetMenuBar().FindItemById(frame.staticReward.GetId()).IsChecked()): # if radiobutton 'feste pramien' is checked
-                temp = readConfig('config.ini', tempPlacement, 'static')
+            # if radiobutton 'feste pramien' is checked
+            if(frame.GetMenuBar().FindItemById(frame.staticReward.GetId()).IsChecked()):
+                temp = readConfig('config.ini', counter, 'static')
                 if(int(temp) > 0):  # ignoring values lower 1
-                    if(self.sendMoney(self.communityid, tempUserid, temp, tempPlacement + '. Platz.') == 200):
+                    if(self.sendMoney(self.communityid, tempUserid, temp, str(counter) + '. Platz.') == 200):
                         frame.text.AppendText(
-                            '\nTransaktion fuer ' + tempPlacement + '. Platz erfolgreich!')
+                            '\nTransaktion fuer ' + str(counter) + '. Platz erfolgreich!')
                     else:
                         frame.text.AppendText(
-                            '\nTransaktion fuer ' + tempPlacement + '. Platz fehlgeschlagen!')
-            elif(frame.GetMenuBar().FindItemById(frame.multiplierReward.GetId()).IsChecked()): # if radiobutton 'punkte basiert' is checked
-                temp = readConfig('config.ini', tempPlacement, 'static')
+                            '\nTransaktion fuer ' + str(counter) + '. Platz fehlgeschlagen!')
+            # if radiobutton 'punkte basiert' is checked
+            elif(frame.GetMenuBar().FindItemById(frame.multiplierReward.GetId()).IsChecked()):
+                temp = readConfig('config.ini', counter, 'static')
                 if(int(temp) > 0):  # ignoring values lower 1
-                    if(self.sendMoney(self.communityid, tempUserid, temp*int(readConfig('config.ini', 1, 'pointbased')), tempPlacement + '. Platz.') == 200):
+                    if(self.sendMoney(self.communityid, tempUserid, temp * int(readConfig('config.ini', 1, 'pointbased')), str(counter) + '. Platz.') == 200):
                         frame.text.AppendText(
-                            '\nTransaktion fuer ' + tempPlacement + '. Platz erfolgreich!')
+                            '\nTransaktion fuer ' + str(counter) + '. Platz erfolgreich!')
                     else:
                         frame.text.AppendText(
-                            '\nTransaktion fuer ' + tempPlacement + '. Platz fehlgeschlagen!')
+                            '\nTransaktion fuer ' + str(counter) + '. Platz fehlgeschlagen!')
+            counter = counter + 1
 
 ########################################################################
+
+
 class MouseEventFrame(wx.Frame):
     """Constructor"""
+
     def __init__(self, parent, id):
         self.authTokenFromLogin = ''
         self.communityid = ''
@@ -280,7 +302,8 @@ class MouseEventFrame(wx.Frame):
         # menu bar
         menuBar = wx.MenuBar()
         menu = wx.Menu()
-        maxPlayerGetRewardMenuItem = menu.Append(wx.NewId(), 'Letzte Platzierung fuer Praemie', 'Letzte Platzierung, die eine Praemie erhaelt')
+        maxPlayerGetRewardMenuItem = menu.Append(wx.NewId(
+        ), 'Letzte Platzierung fuer Praemie', 'Letzte Platzierung, die eine Praemie erhaelt')
         staticRewardsMenuItem = menu.Append(
             wx.NewId(), 'Feste Praemien setzen', 'Setze die festen Praemien')
         multiplierMenuItem = menu.Append(
@@ -302,8 +325,10 @@ class MouseEventFrame(wx.Frame):
         menuBar.Append(self.radioMenu, "&Modus")
 
         self.Bind(wx.EVT_MENU, self.onExit, exitMenuItem)
-        self.Bind(wx.EVT_MENU, self.onMaxPlayGetRewardDialog, maxPlayerGetRewardMenuItem)
-        self.Bind(wx.EVT_MENU, self.onStaticRewardsDialog, staticRewardsMenuItem)
+        self.Bind(wx.EVT_MENU, self.onMaxPlayGetRewardDialog,
+                  maxPlayerGetRewardMenuItem)
+        self.Bind(wx.EVT_MENU, self.onStaticRewardsDialog,
+                  staticRewardsMenuItem)
         self.Bind(wx.EVT_MENU, self.onMultiplierDialog, multiplierMenuItem)
         self.SetMenuBar(menuBar)
 
@@ -341,7 +366,7 @@ class MouseEventFrame(wx.Frame):
         #self.Bind(wx.EVT_BUTTON, self.myClick, self.buttonSendMoney)
         self.Bind(wx.EVT_BUTTON, self.clickTransaction, self.buttonTransaction)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClick, self.buttonLogin)
-    
+
     #----------------------------------------------------------------------
     def onMultiplierDialog(self, event):
         """"""
@@ -352,22 +377,25 @@ class MouseEventFrame(wx.Frame):
                          dlg.multiplierValue.GetValue())
         dlg.Destroy()
 
-    #----------------------------------------------------------------------    
+    #----------------------------------------------------------------------
     def onMaxPlayGetRewardDialog(self, event):
         """"""
         dlg = MyDialog()
         res = dlg.ShowModal()
         if res == wx.ID_OK:
-            updateConfig('config.ini', 'maxPlayerReward', dlg.comboBox1.GetValue())
+            updateConfig('config.ini', 'maxPlayerReward',
+                         dlg.comboBox1.GetValue())
         dlg.Destroy()
     #----------------------------------------------------------------------
+
     def onStaticRewardsDialog(self, event):
         """"""
         dlg = SetStaticRewardsDialog()
         res = dlg.ShowModal()
         if res == wx.ID_OK:
             for i in range(10):
-                updateConfigStaticRewards('config.ini', i+1, dlg.ticker_ctrls[i].GetValue())
+                updateConfigStaticRewards(
+                    'config.ini', i + 1, dlg.ticker_ctrls[i].GetValue())
         dlg.Destroy()
 
     #----------------------------------------------------------------------
@@ -399,10 +427,11 @@ class MouseEventFrame(wx.Frame):
     def printPlacement(self):
         """"""
         self.text.AppendText('\nPlatzierungen letzter Spieltag:')
-        for i in range(len(self.userlist) + 1):
-            temp = bot.getLatestStanding(i + 1)
-            if(str(temp) != '-1'):
-                self.text.AppendText('\n' + str(temp))
+        bot.getLatestPoints()
+        # for i in range(len(self.userlist)):
+        #     temp = bot.getLatestPoints()
+        #     if(str(temp) != '-1'):
+        #         self.text.AppendText('\n' + str(temp))
 
         with open('standings.json', 'w') as outfile:
             json.dump(bot.getPlacementAndUserIds(), outfile)
@@ -441,6 +470,8 @@ class MouseEventFrame(wx.Frame):
         self.panel.Refresh()
 
 ########################################################################
+
+
 class SetMultiplierDialog(wx.Dialog):
     """"""
 
@@ -459,29 +490,34 @@ class SetMultiplierDialog(wx.Dialog):
         self.SetSizer(sizer)
 
 ########################################################################
+
+
 class SetStaticRewardsDialog(wx.Dialog):
     """"""
 
     #----------------------------------------------------------------------
     def __init__(self):
         """Constructor"""
-        wx.Dialog.__init__(self, None, title="Praemien setzen", size=(230, 470))
-        sizer = wx.BoxSizer(wx.VERTICAL)        
+        wx.Dialog.__init__(
+            self, None, title="Praemien setzen", size=(230, 470))
+        sizer = wx.BoxSizer(wx.VERTICAL)
         self.ticker_ctrls = {}
         ticker_items = []
         for i in range(10):
-            ticker_items.append(readConfig('config.ini', i+1, 'static'))
+            ticker_items.append(readConfig('config.ini', i + 1, 'static'))
         counter = 0
         for item in ticker_items:
-            ctrl = wx.TextCtrl(self, value = item, name = item)
+            ctrl = wx.TextCtrl(self, value=item, name=item)
             sizer.Add(ctrl, 0, wx.ALL | wx.CENTER, 5)
             self.ticker_ctrls[counter] = ctrl
             counter = counter + 1
-        okBtn = wx.Button(self, wx.ID_OK)              
+        okBtn = wx.Button(self, wx.ID_OK)
         sizer.Add(okBtn, 0, wx.ALL | wx.CENTER, 5)
         self.SetSizer(sizer)
 
 ########################################################################
+
+
 class MyDialog(wx.Dialog):
     """"""
 
@@ -490,16 +526,18 @@ class MyDialog(wx.Dialog):
         """Constructor"""
         wx.Dialog.__init__(self, None, title="Platzierung", size=(100, 100))
         self.value = readConfig('config.ini', '1', 'maxPlayerReward')
-        self.comboBox1 = wx.ComboBox(self, 
-                                     choices=['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+        self.comboBox1 = wx.ComboBox(self,
+                                     choices=['1', '2', '3', '4', '5',
+                                              '6', '7', '8', '9', '10'],
                                      value=self.value)
         self.comboBox1.SetEditable(False)
         okBtn = wx.Button(self, wx.ID_OK)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.comboBox1, 0, wx.ALL|wx.CENTER, 5)
-        sizer.Add(okBtn, 0, wx.ALL|wx.CENTER, 5)
+        sizer.Add(self.comboBox1, 0, wx.ALL | wx.CENTER, 5)
+        sizer.Add(okBtn, 0, wx.ALL | wx.CENTER, 5)
         self.SetSizer(sizer)
+
 
 #----------------------------------------------------------------------
 if __name__ == '__main__':
