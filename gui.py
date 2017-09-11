@@ -60,7 +60,6 @@ class Bot:
         try:
             requestLogin = self.session.post(
                 'https://api.comunio.de/login', headers=headersLogin, data=dataLogin)
-            print requestLogin.text
             requestLogin.encoding = 'utf-8'
 
             if not requestLogin.status_code // 100 == 2:
@@ -169,7 +168,6 @@ class Bot:
             counter = 0
         for id in jsonData['items'][tempid]['players']:
             counter = counter + 1
-            # print str(id['id'])
             self.list_userids.append(str(id['id']))
         return self.list_userids
 
@@ -275,7 +273,7 @@ class Bot:
             elif(frame.GetMenuBar().FindItemById(frame.multiplierReward.GetId()).IsChecked()):
                 temp = readConfig('config.ini', counter, 'static')
                 if(int(temp) > 0):  # ignoring values lower 1
-                    if(self.sendMoney(self.communityid, tempUserid, temp * int(readConfig('config.ini', 1, 'pointbased')), str(counter) + '. Platz.') == 200):
+                    if(self.sendMoney(self.communityid, tempUserid, str(int(entry['totalPoints']) * int(readConfig('config.ini', 1, 'pointbased'))), str(counter) + '. Platz.') == 200):
                         frame.text.AppendText(
                             '\nTransaktion fuer ' + str(counter) + '. Platz erfolgreich!')
                     else:
