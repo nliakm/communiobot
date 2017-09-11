@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 .vscode
 py3env/
 config.ini
 myConfigParser3_5.pyc
 standings.json
+=======
+py3env/
+>>>>>>> master
