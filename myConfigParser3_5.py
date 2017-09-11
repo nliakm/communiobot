@@ -8,7 +8,7 @@ def createConfig():
         config = configparser.ConfigParser()
         config['Feste Praemien'] = {'1': '10000', '2': '9000', '3': '8000', '4': '7000', '5': '6000', '6': '5000', '7': '4000', '8': '3000', '9': '2000', '10': '1000'}
         config['Punkte basiert'] = {'Multiplikator': '1000'}
-        config['Letzte Praemienplatzierung'] = {'Max Platzierung': '4'}
+        config['Letzte Praemienplatzierung'] = {'Max_Platzierung': '4'}
         with open('config.ini', 'w') as configfile:
             config.write(configfile)
         return True
