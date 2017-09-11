@@ -342,9 +342,9 @@ class MouseEventFrame(wx.Frame):
 
         # Login objects
         self.usernameText = wx.TextCtrl(self.panel, pos=(
-            5, 15), size=(100, 10), value="darealmvp")
+            5, 15), size=(100, 10), value="username")
         self.passwordText = wx.TextCtrl(self.panel, pos=(105, 15), size=(
-            100, 10), value="test7!", style=wx.TE_PASSWORD)
+            100, 10), value="password", style=wx.TE_PASSWORD)
         self.buttonLogin = wx.Button(self.panel, label="Login", pos=(205, 5))
 
         self.buttonTransaction = wx.Button(
