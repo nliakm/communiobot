@@ -255,28 +255,29 @@ class Bot:
         """"""
         counter = 1
         for entry in self.placement_and_userids:
-            #tempPlacement = str(entry['standing'])
-            tempUserid = str(entry['userid'])
-            # if radiobutton 'feste pramien' is checked
-            if(frame.GetMenuBar().FindItemById(frame.staticReward.GetId()).IsChecked()):
-                temp = readConfig('config.ini', counter, 'static')
-                if(int(temp) > 0):  # ignoring values lower 1
-                    if(self.sendMoney(self.communityid, tempUserid, temp, str(counter) + '. Platz.') == 200):
-                        frame.text.AppendText(
-                            '\nTransaktion fuer ' + str(counter) + '. Platz erfolgreich!')
-                    else:
-                        frame.text.AppendText(
-                            '\nTransaktion fuer ' + str(counter) + '. Platz fehlgeschlagen!')
-            # if radiobutton 'punkte basiert' is checked
-            elif(frame.GetMenuBar().FindItemById(frame.multiplierReward.GetId()).IsChecked()):
-                temp = readConfig('config.ini', counter, 'static')
-                if(int(temp) > 0):  # ignoring values lower 1
-                    if(self.sendMoney(self.communityid, tempUserid, str(int(entry['totalPoints']) * int(readConfig('config.ini', 1, 'pointbased'))), str(counter) + '. Platz.') == 200):
-                        frame.text.AppendText(
-                            '\nTransaktion fuer ' + str(counter) + '. Platz erfolgreich!')
-                    else:
-                        frame.text.AppendText(
-                            '\nTransaktion fuer ' + str(counter) + '. Platz fehlgeschlagen!')
+            if counter <= int(readConfig('config.ini', '1', 'maxPlayerReward')):
+                #tempPlacement = str(entry['standing'])
+                tempUserid = str(entry['userid'])
+                # if radiobutton 'feste pramien' is checked
+                if(frame.GetMenuBar().FindItemById(frame.staticReward.GetId()).IsChecked()):
+                    temp = readConfig('config.ini', counter, 'static')
+                    if(int(temp) > 0):  # ignoring values lower 1
+                        if(self.sendMoney(self.communityid, tempUserid, temp, str(counter) + '. Platz.') == 200):
+                            frame.text.AppendText(
+                                '\nTransaktion fuer ' + str(counter) + '. Platz erfolgreich!')
+                        else:
+                            frame.text.AppendText(
+                                '\nTransaktion fuer ' + str(counter) + '. Platz fehlgeschlagen!')
+                # if radiobutton 'punkte basiert' is checked
+                elif(frame.GetMenuBar().FindItemById(frame.multiplierReward.GetId()).IsChecked()):
+                    temp = readConfig('config.ini', counter, 'static')
+                    if(int(temp) > 0):  # ignoring values lower 1
+                        if(self.sendMoney(self.communityid, tempUserid, str(int(entry['totalPoints']) * int(readConfig('config.ini', 1, 'pointbased'))), str(counter) + '. Platz.') == 200):
+                            frame.text.AppendText(
+                                '\nTransaktion fuer ' + str(counter) + '. Platz erfolgreich!')
+                        else:
+                            frame.text.AppendText(
+                                '\nTransaktion fuer ' + str(counter) + '. Platz fehlgeschlagen!')
             counter = counter + 1
 
 ########################################################################
