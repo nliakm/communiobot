@@ -11,6 +11,7 @@ from ConfigHandler import updateConfigStaticRewards
 
 ########################################################################
 
+
 class Bot:
     """"""
     #----------------------------------------------------------------------
@@ -34,7 +35,16 @@ class Bot:
 
     #----------------------------------------------------------------------
     def doLogin(self, username, password):
-        """"""
+        """Login to comunio.de.
+
+        username -- the username entered into username textbox
+        password -- the password entered into password textbox
+
+        Gets the authtoken needed for further requests as the user.
+        Create default config.ini if not present.
+        Runs getUserAndLeagueInfo to get username, userid, communityid and communityname
+        Updates the gui after login with call of function getInformationsAfterLogin
+        """
         self.session = requests.Session()
         headersLogin = {
             'Origin': self.origin,
@@ -83,7 +93,7 @@ class Bot:
 
     #----------------------------------------------------------------------
     def getAuthToken(self):
-        """"""
+        """Getter for authtoken."""
         return self.authToken
 
     #----------------------------------------------------------------------
@@ -93,22 +103,22 @@ class Bot:
 
     #----------------------------------------------------------------------
     def getUserName(self):
-        """"""
+        """Getter for username of logged in user."""
         return self.username
 
     #----------------------------------------------------------------------
     def getUserId(self):
-        """"""
+        """Getter for userid of logged in user."""
         return self.userid
 
     #----------------------------------------------------------------------
     def getCommunityId(self):
-        """"""
+        """Getter for community id of logged in user."""
         return self.communityid
 
     #----------------------------------------------------------------------
     def getUserAndLeagueInfo(self):
-        """"""
+        """Gets username, userid, communityid and communityname of logged in user."""
         headersInfo = {
             'Origin': self.origin,
             'Accept-Encoding': self.accept_encoding,
@@ -133,7 +143,7 @@ class Bot:
 
     #----------------------------------------------------------------------
     def getAllUserIds(self):
-        """"""
+        """Gets all userids from community and store them into a list."""
         headersStandings = {
             'Origin': self.origin,
             'Accept-Encoding': self.accept_encoding,
@@ -163,7 +173,7 @@ class Bot:
 
     #----------------------------------------------------------------------
     def getLatestPoints(self):
-        """"""
+        """Gets points of all users and store them into a json object."""
         headers = {
             'Origin': self.origin,
             'Accept-Encoding': self.accept_encoding,
@@ -210,7 +220,13 @@ class Bot:
 
     #----------------------------------------------------------------------
     def sendMoney(self, communityid, userid, amount, reason):
-        """"""
+        """Send Money to a user.
+
+        communityid -- communityid of logged in user
+        userid -- userid of user who will recieve the money
+        amount -- amount of money to send
+        reason -- text that will appear on dashboard
+        """
         headersMoney = {
             'Authorization': 'Bearer ' + self.authToken,
             'Origin': self.origin,
@@ -229,9 +245,12 @@ class Bot:
         return requestMoney.status_code
 
     #----------------------------------------------------------------------
-    def executeTransaction(self, configfile):
-        """"""
-        counter = 1 # needed for display placement number in output console
+    def executeTransaction(self, configfile='config.ini'):
+        """Execeutes transaction based on configfile.
+
+        configfile -- configfile that is used (default config.ini) 
+        """
+        counter = 1  # needed for display placement number in output console
         for entry in self.placement_and_userids:
             # check last placement for reward
             if counter <= int(readConfig('config.ini', '1', 'maxPlayerReward')):
@@ -242,23 +261,24 @@ class Bot:
                     if(int(temp) > 0):  # ignoring values lower 1
                         if(self.sendMoney(self.communityid, tempUserid, temp, str(counter) + '. Platz.') == 200):
                             frame.text.AppendText(
-                                '\nTransaktion fuer ' + str(counter) + '. Platz erfolgreich!')
+                                '\nTransaktion fuer ' + str(entry['name']) + '(' + str(counter) + '. Platz) erfolgreich!')
                         else:
                             frame.text.AppendText(
-                                '\nTransaktion fuer ' + str(counter) + '. Platz fehlgeschlagen!')
+                                '\nTransaktion fuer ' + str(entry['name']) + '(' + str(counter) + '. Platz) fehlgeschlagen!')
                 # if radiobutton 'punkte basiert' is checked
                 elif(frame.GetMenuBar().FindItemById(frame.multiplierReward.GetId()).IsChecked()):
                     temp = readConfig('config.ini', counter, 'static')
                     if(int(temp) > 0):  # ignoring values lower 1
                         if(self.sendMoney(self.communityid, tempUserid, str(int(entry['totalPoints']) * int(readConfig('config.ini', 1, 'pointbased'))), str(counter) + '. Platz.') == 200):
                             frame.text.AppendText(
-                                '\nTransaktion fuer ' + str(counter) + '. Platz erfolgreich!')
+                                '\nTransaktion fuer ' + str(entry['name']) + '(' + str(counter) + '. Platz) erfolgreich!')
                         else:
                             frame.text.AppendText(
-                                '\nTransaktion fuer ' + str(counter) + '. Platz fehlgeschlagen!')
+                                '\nTransaktion fuer ' + str(entry['name']) + '(' + str(counter) + '. Platz) fehlgeschlagen!')
             counter = counter + 1
 
 ########################################################################
+
 
 class MouseEventFrame(wx.Frame):
     """Constructor"""
@@ -329,7 +349,7 @@ class MouseEventFrame(wx.Frame):
 
     #----------------------------------------------------------------------
     def onMultiplierDialog(self, event):
-        """"""
+        """Dialog to change multiplier value."""
         dlg = SetMultiplierDialog()
         res = dlg.ShowModal()
         if res == wx.ID_OK:
@@ -339,7 +359,7 @@ class MouseEventFrame(wx.Frame):
 
     #----------------------------------------------------------------------
     def onMaxPlayGetRewardDialog(self, event):
-        """"""
+        """Dialog to change number of players who will get a reward."""
         dlg = MyDialog()
         res = dlg.ShowModal()
         if res == wx.ID_OK:
@@ -349,7 +369,7 @@ class MouseEventFrame(wx.Frame):
     #----------------------------------------------------------------------
 
     def onStaticRewardsDialog(self, event):
-        """"""
+        """Dialog to change the values of rewards."""
         dlg = SetStaticRewardsDialog()
         res = dlg.ShowModal()
         if res == wx.ID_OK:
@@ -360,41 +380,41 @@ class MouseEventFrame(wx.Frame):
 
     #----------------------------------------------------------------------
     def onExit(self, event):
-        """"""
+        """Event that terminates app Datei > Beenden"""
         self.Close()
 
     #----------------------------------------------------------------------
     def clickTransaction(self, event):
-        """"""
+        """Call the executeTransaction method"""
         bot.executeTransaction('config.ini')
 
-    #----------------------------------------------------------------------
-    def myClick(self, event):
-        """"""
-        if(str(self.moneyUserId.GetSelection()) != '-1'):
-            result = bot.sendMoney(str(self.communityid), str(self.moneyUserId.GetValue()), str(
-                self.moneyAmount.GetValue()), self.moneyReason.GetValue())
-            if(result == 200):
-                self.text.AppendText('\nTransaktion erfolgeich!\nBenutzer: ' + str(self.moneyUserId.GetValue()) +
-                                     '\nSumme: ' + str(self.moneyAmount.GetValue()) + '\nBegruendung: ' + str(self.moneyReason.GetValue()))
-            else:
-                self.text.AppendText('\nTransaktion fehlgeschlagen!')
-        else:
-            wx.MessageBox('Keine User ID ausgewaehlt!', 'Fehler!',
-                          wx.OK | wx.ICON_ERROR, self.panel)
+    # #----------------------------------------------------------------------
+    # def myClick(self, event):
+    #     """Event for button which manually sends money to a specific user."""
+    #     if(str(self.moneyUserId.GetSelection()) != '-1'):
+    #         result = bot.sendMoney(str(self.communityid), str(self.moneyUserId.GetValue()), str(
+    #             self.moneyAmount.GetValue()), self.moneyReason.GetValue())
+    #         if(result == 200):
+    #             self.text.AppendText('\nTransaktion erfolgeich!\nBenutzer: ' + str(self.moneyUserId.GetValue()) +
+    #                                  '\nSumme: ' + str(self.moneyAmount.GetValue()) + '\nBegruendung: ' + str(self.moneyReason.GetValue()))
+    #         else:
+    #             self.text.AppendText('\nTransaktion fehlgeschlagen!')
+    #     else:
+    #         wx.MessageBox('Keine User ID ausgewaehlt!', 'Fehler!',
+    #                       wx.OK | wx.ICON_ERROR, self.panel)
 
     #----------------------------------------------------------------------
     def printPlacement(self):
-        """"""
+        """Print placements of players into output console."""
         self.text.AppendText('\nPlatzierungen letzter Spieltag:')
         bot.getLatestPoints()
 
-        with open('standings.json', 'w') as outfile: # save standings into .json file
+        with open('standings.json', 'w') as outfile:  # save standings into .json file
             json.dump(bot.getPlacementAndUserIds(), outfile)
 
     #----------------------------------------------------------------------
     def getInformationsAfterLogin(self):
-        """"""
+        """Updates the gui after login is sucessful."""
         # destroy login objects
         self.buttonLogin.Destroy()
         self.usernameText.Destroy()
@@ -418,7 +438,7 @@ class MouseEventFrame(wx.Frame):
 
     #----------------------------------------------------------------------
     def OnButtonClick(self, event):
-        """"""
+        """Starts the login."""
         bot.doLogin(self.usernameText.GetValue(),
                     self.passwordText.GetValue())  # execute login
         self.authTokenFromLogin = bot.getAuthToken()  # get authtoken
@@ -427,8 +447,9 @@ class MouseEventFrame(wx.Frame):
 
 ########################################################################
 
+
 class SetMultiplierDialog(wx.Dialog):
-    """"""
+    """Class for multiplier dialog."""
 
     #----------------------------------------------------------------------
     def __init__(self):
@@ -446,8 +467,9 @@ class SetMultiplierDialog(wx.Dialog):
 
 ########################################################################
 
+
 class SetStaticRewardsDialog(wx.Dialog):
-    """"""
+    """Class for static reward dialog."""
 
     #----------------------------------------------------------------------
     def __init__(self):
@@ -471,8 +493,9 @@ class SetStaticRewardsDialog(wx.Dialog):
 
 ########################################################################
 
+
 class MyDialog(wx.Dialog):
-    """"""
+    """Class for max player reward dialog."""
 
     #----------------------------------------------------------------------
     def __init__(self):
