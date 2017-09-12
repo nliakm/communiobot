@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 .vscode/
 py3env/
 config.ini
 ConfigHandler.pyc
 standings.json
-=======
-py3env/
->>>>>>> master

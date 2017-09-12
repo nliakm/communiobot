@@ -11,7 +11,6 @@ from ConfigHandler import updateConfigStaticRewards
 
 ########################################################################
 
-
 class Bot:
     """"""
     #----------------------------------------------------------------------
@@ -186,46 +185,28 @@ class Bot:
 
         jsonData = json.loads(requestLatestStanding.text)  # print jsonData
 
-        # save user with points into dict obj
+        # function to be able to sort by points
+        def myFn(s):
+            return s['totalPoints']
+
+        # save user with points, name and id into dict obj
         for item in jsonData['items']:
             # create json object with attribute userid
             data = {'userid': str(item['_embedded']['user']['id'])}
             # add attribute totalPoints with value
             data['totalPoints'] = int(item['totalPoints'])
+            # add attribute name
+            data['name'] = str(item['_embedded']['user']['name'])
             self.placement_and_userids.append(
                 data)  # append json object to json
             self.placement_and_userids = sorted(
-                self.placement_and_userids, reverse=True)  # sort by points
-
-        # output standings in output console
+                self.placement_and_userids, key=myFn, reverse=True)  # sort by points
+        # print standings in output console
         counter = 0
         for entry in self.placement_and_userids:
             counter = counter + 1
             frame.text.AppendText('\n' + str(counter) + '. Platz mit ' +
-                                  str(entry['totalPoints']) + ' Punkten: ' + str(entry['userid']))
-        # return -1
-
-    #----------------------------------------------------------------------
-    # def postText(self):
-    #     """"""
-    #     headersText = {
-    #         'Authorization': 'Bearer ' + self.authToken,
-    #         'Origin': self.origin,
-    #         'Accept-Encoding': self.accept_encoding,
-    #         'Accept-Language': 'de-DE,en-EN;q=0.9',
-    #         'User-Agent': self.user_agent,
-    #         'Content-Type': 'application/json;charset=UTF-8',
-    #         'Accept': 'application/json, text/plain, */*',
-    #         'Referer': 'http://www.comunio.de/newsEntry/',
-    #         'Connection': self.connection,
-    #     }
-    #     title = "Das ist ein Titel"
-    #     content = "Das ist der Inhalt</p>\\n<p>1. Zeile</p>\\n<p>2. Zeile"
-    #     dataText = '{"newsEntry":{"title":"' + title + \
-    #         '","message":{"text":"<p>' + content + \
-    #         '</p>"},"recipientId":null}}'
-    #     requestNachricht = self.session.post('https://api.comunio.de/communities/' +
-    #                                          self.communityid + '/users/12578395/news', headers=headersText, data=dataText)
+                                  str(entry['totalPoints']) + ' Punkten: ' + str(entry['name']))
 
     #----------------------------------------------------------------------
     def sendMoney(self, communityid, userid, amount, reason):
@@ -278,7 +259,6 @@ class Bot:
             counter = counter + 1
 
 ########################################################################
-
 
 class MouseEventFrame(wx.Frame):
     """Constructor"""
@@ -344,18 +324,6 @@ class MouseEventFrame(wx.Frame):
         self.buttonTransaction.Show(False)
         self.buttonTransaction.Disable()
 
-        # send money manually
-        # self.moneyAmount = wx.TextCtrl(self.panel, pos=(
-        #     5, 370), size=(100, 10), value="1000")
-        # self.moneyReason = wx.TextCtrl(self.panel, pos=(
-        #     115, 370), size=(100, 10), value="begruendung")
-        # self.moneyUserId = wx.ComboBox(
-        #     self.panel, value="", pos=(5, 400), choices=bot.list_userids)
-        # self.buttonSendMoney = wx.Button(
-        #     self.panel, label="Senden", pos=(130, 400), size=(100, 30))
-
-        # Button events
-        #self.Bind(wx.EVT_BUTTON, self.myClick, self.buttonSendMoney)
         self.Bind(wx.EVT_BUTTON, self.clickTransaction, self.buttonTransaction)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClick, self.buttonLogin)
 
@@ -459,7 +427,6 @@ class MouseEventFrame(wx.Frame):
 
 ########################################################################
 
-
 class SetMultiplierDialog(wx.Dialog):
     """"""
 
@@ -478,7 +445,6 @@ class SetMultiplierDialog(wx.Dialog):
         self.SetSizer(sizer)
 
 ########################################################################
-
 
 class SetStaticRewardsDialog(wx.Dialog):
     """"""
@@ -504,7 +470,6 @@ class SetStaticRewardsDialog(wx.Dialog):
         self.SetSizer(sizer)
 
 ########################################################################
-
 
 class MyDialog(wx.Dialog):
     """"""
