@@ -238,8 +238,7 @@ class Bot:
         counter = 0
         for entry in self.placement_and_userids:
             counter = counter + 1
-            frame.text.AppendText('\n' + str(counter) + '. Platz mit ' +
-                                  str(entry['totalPoints']) + ' Punkten: ' + str(entry['name']))
+            frame.text.AppendText('\n' + str(counter) + '. Platz mit ' + str(entry['totalPoints']) + ' Punkten: ' +str(entry['name'])+ '(' +str(entry['userid'])+ ')')
 
     #----------------------------------------------------------------------
     def sendMoney(self, communityid, userid, amount, reason):
