@@ -117,6 +117,30 @@ class Bot:
         return self.communityid
 
     #----------------------------------------------------------------------
+    def getWealth(self, userid):
+        """Get value of team and budget.
+        
+        userid -- userid of user
+        """
+        headersInfo = {
+            'Origin': self.origin,
+            'Accept-Encoding': self.accept_encoding,
+            'Accept-Language': 'en-EN',
+            'Authorization': 'Bearer ' + self.authToken,
+            'Accept': 'application/json, text/plain, */*',
+            'Referer': 'http://www.comunio.de/standings/total',
+            'User-Agent': self.user_agent,
+            'Connection': self.connection,
+        }
+
+        requestInfo = requests.get(
+            'https://api.comunio.de/users/' +str(userid)+ '/squad-latest', headers=headersInfo)
+
+        jsonData = json.loads(requestInfo.text)
+        wealth = int(jsonData['matchday']['budget']) + int(jsonData['matchday']['totalMarketValue'])
+        return wealth
+
+    #----------------------------------------------------------------------
     def getUserAndLeagueInfo(self):
         """Gets username, userid, communityid and communityname of logged in user."""
         headersInfo = {
@@ -211,7 +235,6 @@ class Bot:
                 data)  # append json object to json
             self.placement_and_userids = sorted(
                 self.placement_and_userids, key=myFn, reverse=True)  # sort by points
-        # print standings in output console
         counter = 0
         for entry in self.placement_and_userids:
             counter = counter + 1
@@ -408,9 +431,11 @@ class MouseEventFrame(wx.Frame):
         """Print placements of players into output console."""
         self.text.AppendText('\nPlatzierungen letzter Spieltag:')
         bot.getLatestPoints()
-
+        self.text.AppendText('\nVermoegenswerte der Spieler:')
         with open('standings.json', 'w') as outfile:  # save standings into .json file
             json.dump(bot.getPlacementAndUserIds(), outfile)
+        for item in self.userlist:
+            self.text.AppendText('\nuserid: ' +str(item)+ ', Vermoegen: ' +str(bot.getWealth(item)))
 
     #----------------------------------------------------------------------
     def getInformationsAfterLogin(self):
