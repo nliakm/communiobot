@@ -373,6 +373,7 @@ class MouseEventFrame(wx.Frame):
     #----------------------------------------------------------------------
     def onMultiplierDialog(self, event):
         """Dialog to change multiplier value."""
+        createConfig()
         dlg = SetMultiplierDialog()
         res = dlg.ShowModal()
         if res == wx.ID_OK:
@@ -383,6 +384,7 @@ class MouseEventFrame(wx.Frame):
     #----------------------------------------------------------------------
     def onMaxPlayGetRewardDialog(self, event):
         """Dialog to change number of players who will get a reward."""
+        createConfig()
         dlg = MyDialog()
         res = dlg.ShowModal()
         if res == wx.ID_OK:
@@ -393,6 +395,7 @@ class MouseEventFrame(wx.Frame):
 
     def onStaticRewardsDialog(self, event):
         """Dialog to change the values of rewards."""
+        createConfig()
         dlg = SetStaticRewardsDialog()
         res = dlg.ShowModal()
         if res == wx.ID_OK:
