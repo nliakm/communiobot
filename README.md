@@ -2,9 +2,24 @@
 Programm zur automatisierter Vergabe von Prämien nach einem Spieltag
 
 <h1>Verwendung</h1>
-<h2>Voraussetzungen</h2>
+<h2>Installation auf Windows</h2>
 Auf dem System muss Python 3.x installiert sein.
-Als Zusatzmodule müssen requests und wxPython (https://github.com/wxWidgets/Phoenix/blob/master/README.rst#prerequisites) installiert sein.
+Als Zusatzmodule müssen requests und wxPython (https://github.com/wxWidgets/Phoenix/blob/master/README.rst#prerequisites) installiert sein.<br>
+Zuerst Python 3.x installieren: https://www.python.org/downloads/<br>
+Nach Installation müssen die Umgebungsvariablen gesetzt werden:<br>
+Dafür zu Systemsteuerung > System > Eweiterte Systemeinstellungen > Umgebungsvariablen navigieren.<br>
+Im folgenden Fenster unter Systemvariablen auf Path klicken, anschließend auf "Bearbeiten..."<br>
+Nachdem sich das neue Fenster geöffnet hat, zwei Einträge über den Button Neu hinzufügen:<br>
+(Je nach Installationspfad ändern, bei mir sieht es folgendermaßen aus:)<br>
+C:\Users\Username\Appdata\Local\Programs\Python\Python36<br>
+C:\Users\Username\Appdata\Local\Programs\Python\Python36\Scripts<br><br>
+Anschließend cmd Shell öffnen und folgende Befehle eingeben:<br>
+pip install requests<br>
+pip install -U wxPython<br>
+Nun sind alle Voraussetzungen installiert. 
+
+ 
+
 <h2>Ausführung</h2>
 Das Projekt klonen und anschließend die Datei ComunioBot.py ausführen
 <h2>Login</h2>
