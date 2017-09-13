@@ -313,7 +313,8 @@ class MouseEventFrame(wx.Frame):
         self.username = ''
         self.userlist = []
 
-        wx.Frame.__init__(self, parent, id, 'comuniobot', size=(300, 405))
+        
+        wx.Frame.__init__(self, parent, id, 'comuniobot v0.2', size=(500, 405), style = wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
         self.panel = wx.Panel(self)
 
         # menu bar
@@ -351,7 +352,7 @@ class MouseEventFrame(wx.Frame):
         self.welcomeLabel.Disable()
         # output console
         self.text = wx.TextCtrl(self.panel, pos=(
-            5, 50), size=(285, 300), style=wx.TE_MULTILINE)
+            5, 50), size=(490, 300), style=wx.TE_MULTILINE)
         self.text.SetEditable(False)
 
         # Login objects
@@ -503,7 +504,7 @@ class SetStaticRewardsDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.ticker_ctrls = {}
         ticker_items = []
-        for i in range(10):
+        for i in range(int(readConfig('config.ini', '1', 'maxPlayerReward'))):
             ticker_items.append(readConfig('config.ini', i + 1, 'static'))
         counter = 0
         for item in ticker_items:
