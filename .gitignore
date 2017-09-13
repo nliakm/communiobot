@@ -1,5 +1,6 @@
 .vscode/
 py3env/
+__pycache__
 config.ini
 ConfigHandler.pyc
 standings.json
