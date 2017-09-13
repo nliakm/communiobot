@@ -119,7 +119,7 @@ class Bot:
     #----------------------------------------------------------------------
     def getWealth(self, userid):
         """Get value of team and budget.
-        
+
         userid -- userid of user
         """
         headersInfo = {
@@ -134,10 +134,11 @@ class Bot:
         }
 
         requestInfo = requests.get(
-            'https://api.comunio.de/users/' +str(userid)+ '/squad-latest', headers=headersInfo)
+            'https://api.comunio.de/users/' + str(userid) + '/squad-latest', headers=headersInfo)
 
         jsonData = json.loads(requestInfo.text)
-        wealth = int(jsonData['matchday']['budget']) + int(jsonData['matchday']['totalMarketValue'])
+        wealth = int(jsonData['matchday']['budget']) + \
+            int(jsonData['matchday']['totalMarketValue'])
         return wealth
 
     #----------------------------------------------------------------------
@@ -238,7 +239,8 @@ class Bot:
         counter = 0
         for entry in self.placement_and_userids:
             counter = counter + 1
-            frame.text.AppendText('\n' + str(counter) + '. Platz mit ' + str(entry['totalPoints']) + ' Punkten: ' +str(entry['name'])+ '(' +str(entry['userid'])+ ')')
+            frame.text.AppendText('\n' + str(counter) + '. Platz mit ' + str(
+                entry['totalPoints']) + ' Punkten: ' + str(entry['name']) + '(' + str(entry['userid']) + ')')
 
     #----------------------------------------------------------------------
     def sendMoney(self, communityid, userid, amount, reason):
@@ -313,8 +315,8 @@ class MouseEventFrame(wx.Frame):
         self.username = ''
         self.userlist = []
 
-        
-        wx.Frame.__init__(self, parent, id, 'comuniobot v0.2', size=(500, 405), style = wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+        wx.Frame.__init__(self, parent, id, 'comuniobot v0.2', size=(
+            500, 405), style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
         self.panel = wx.Panel(self)
 
         # menu bar
@@ -347,25 +349,38 @@ class MouseEventFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onMultiplierDialog, multiplierMenuItem)
         self.SetMenuBar(menuBar)
 
-        self.welcomeLabel = wx.StaticText(
-            self.panel, pos=(5, 15), size=(100, 20))
+        # Sizer implementation
+        topSizer = wx.BoxSizer(wx.VERTICAL) # parent sizer
+        loginSizer = wx.BoxSizer(wx.HORIZONTAL) # sizer of login objects
+        self.outputSizer = wx.StaticBox(self.panel, -1, 'Ausgabe:', size=(495, 305)) # static sizer around output console
+        outputSizer = wx.StaticBoxSizer(self.outputSizer, wx.VERTICAL) # sizer for output console
+
+        # welcome text
+        self.buttonTransaction = wx.Button(self.panel, label="Absenden")
+        self.buttonTransaction.Show(False)
+        self.buttonTransaction.Disable()        
+        self.welcomeLabel = wx.StaticText(self.panel)
         self.welcomeLabel.Disable()
+        loginSizer.Add(self.welcomeLabel, 0, wx.ALL, 5)
+        loginSizer.Add(self.buttonTransaction, 0, wx.ALL, 5)
+
         # output console
-        self.text = wx.TextCtrl(self.panel, pos=(
-            5, 50), size=(490, 300), style=wx.TE_MULTILINE)
+        self.text = wx.TextCtrl(self.panel, size=(490, 300), style=wx.TE_MULTILINE)        
         self.text.SetEditable(False)
+        outputSizer.Add(self.text, 0, wx.ALL, 5)
 
         # Login objects
-        self.usernameText = wx.TextCtrl(self.panel, pos=(
-            5, 15), size=(100, 10), value="username")
-        self.passwordText = wx.TextCtrl(self.panel, pos=(105, 15), size=(
-            100, 10), value="password", style=wx.TE_PASSWORD)
-        self.buttonLogin = wx.Button(self.panel, label="Login", pos=(205, 5))
+        self.usernameText = wx.TextCtrl(self.panel, value="username")
+        self.passwordText = wx.TextCtrl(self.panel, value="password", style=wx.TE_PASSWORD)
+        self.buttonLogin = wx.Button(self.panel, label="Login")
+        loginSizer.Add(self.usernameText, 0, wx.ALL, 5)
+        loginSizer.Add(self.passwordText, 0, wx.ALL, 5)
+        loginSizer.Add(self.buttonLogin, 0, wx.ALL, 5)
 
-        self.buttonTransaction = wx.Button(
-            self.panel, label="Absenden", pos=(205, 5))
-        self.buttonTransaction.Show(False)
-        self.buttonTransaction.Disable()
+        topSizer.Add(loginSizer, 0, wx.CENTER)
+        topSizer.Add(outputSizer, 0, wx.ALL | wx.EXPAND, 5)
+        self.panel.SetSizer(topSizer)
+        topSizer.Fit(self)
 
         self.Bind(wx.EVT_BUTTON, self.clickTransaction, self.buttonTransaction)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClick, self.buttonLogin)
@@ -373,7 +388,7 @@ class MouseEventFrame(wx.Frame):
     #----------------------------------------------------------------------
     def onMultiplierDialog(self, event):
         """Dialog to change multiplier value."""
-        createConfig()
+        createConfig()  # if config not existent create it to be able to edit settings
         dlg = SetMultiplierDialog()
         res = dlg.ShowModal()
         if res == wx.ID_OK:
@@ -384,7 +399,7 @@ class MouseEventFrame(wx.Frame):
     #----------------------------------------------------------------------
     def onMaxPlayGetRewardDialog(self, event):
         """Dialog to change number of players who will get a reward."""
-        createConfig()
+        createConfig()  # if config not existent create it to be able to edit settings
         dlg = MyDialog()
         res = dlg.ShowModal()
         if res == wx.ID_OK:
@@ -395,7 +410,7 @@ class MouseEventFrame(wx.Frame):
 
     def onStaticRewardsDialog(self, event):
         """Dialog to change the values of rewards."""
-        createConfig()
+        createConfig()  # if config not existent create it to be able to edit settings
         dlg = SetStaticRewardsDialog()
         res = dlg.ShowModal()
         if res == wx.ID_OK:
@@ -438,7 +453,8 @@ class MouseEventFrame(wx.Frame):
         with open('standings.json', 'w') as outfile:  # save standings into .json file
             json.dump(bot.getPlacementAndUserIds(), outfile)
         for item in self.userlist:
-            self.text.AppendText('\nuserid: ' +str(item)+ ', Vermoegen: ' +str(bot.getWealth(item)))
+            self.text.AppendText('\nuserid: ' + str(item) +
+                                 ', Vermoegen: ' + str(bot.getWealth(item)))
 
     #----------------------------------------------------------------------
     def getInformationsAfterLogin(self):
@@ -457,6 +473,9 @@ class MouseEventFrame(wx.Frame):
         self.welcomeLabel.Enable()
         self.buttonTransaction.Enable()
         self.buttonTransaction.Show(True)
+        welcomeLabelFont = wx.Font(
+            15, wx.MODERN, wx.NORMAL, wx.NORMAL, False, u'Consolas')
+        self.welcomeLabel.SetFont(welcomeLabelFont)
         self.text.AppendText(
             '\nCommunity ID: ' + self.communityid + '\nEigene User ID: ' + self.userid)
         self.welcomeLabel.SetLabelText(
