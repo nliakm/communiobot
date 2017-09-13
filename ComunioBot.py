@@ -396,7 +396,7 @@ class MouseEventFrame(wx.Frame):
         dlg = SetStaticRewardsDialog()
         res = dlg.ShowModal()
         if res == wx.ID_OK:
-            for i in range(10):
+            for i in range(int(readConfig('config.ini', '1', 'maxPlayerReward'))):
                 updateConfigStaticRewards(
                     'config.ini', i + 1, dlg.ticker_ctrls[i].GetValue())
         dlg.Destroy()
