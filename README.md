@@ -9,9 +9,9 @@ Zuerst Python 3.x installieren: https://www.python.org/downloads/<br>
 Nach Installation müssen die Umgebungsvariablen gesetzt werden:<br>
 <img src="https://raw.githubusercontent.com/nliakm/comuniobot/master/ReadmeImages/pythonInstallationWin10PS.png" /> <br><br>
 Anschließend cmd Shell öffnen und sicherstellen, dass Python korrekt installiert ist:<br>
-<img src="https://raw.githubusercontent.com/nliakm/comuniobot/master/ReadmeImages/cmdPythonVersion.png" /><br><br>
+<img src="https://raw.githubusercontent.com/nliakm/comuniobot/master/ReadmeImages/cmdPythonVersion.png" />
 Nun requests und wxPython installieren:<br>
-<img src="https://raw.githubusercontent.com/nliakm/comuniobot/master/ReadmeImages/pythonInstallRequestsAndWxPython.png" /><br><br>
+<img src="https://raw.githubusercontent.com/nliakm/comuniobot/master/ReadmeImages/pythonInstallRequestAndWxPython.png" />
 Nun sind alle Voraussetzungen installiert und das Programm kann gestartet werden. 
 
 <h2>Ausführung</h2>
