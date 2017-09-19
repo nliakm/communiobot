@@ -135,10 +135,8 @@ class Bot:
 
         requestInfo = requests.get(
             'https://api.comunio.de/users/' + str(userid) + '/squad-latest', headers=headersInfo)
-
         jsonData = json.loads(requestInfo.text)
-        wealth = int(jsonData['matchday']['budget']) + \
-            int(jsonData['matchday']['totalMarketValue'])
+        wealth = int(jsonData['matchday']['budget'])
         return wealth
 
     #----------------------------------------------------------------------
@@ -154,10 +152,8 @@ class Bot:
             'User-Agent': self.user_agent,
             'Connection': self.connection,
         }
-
         requestInfo = requests.get(
             'https://api.comunio.de/', headers=headersInfo)
-
         jsonData = json.loads(requestInfo.text)
         self.username = jsonData['user']['name']
         self.userid = jsonData['user']['id']
@@ -165,6 +161,30 @@ class Bot:
         self.communityid = jsonData['community']['id']
 
         return requestInfo.status_code
+
+    def getUserInfo(self, userid):
+        """Gets username, userid, communityid and communityname of logged in user."""
+        headersInfo = {
+            'Origin': self.origin,
+            'Accept-Encoding': self.accept_encoding,
+            'Accept-Language': 'en-EN',
+            'Authorization': 'Bearer ' + self.authToken,
+            'Accept': 'application/json, text/plain, */*',
+            'Referer': 'http://www.comunio.de/standings/total',
+            'User-Agent': self.user_agent,
+            'Connection': self.connection,
+        }
+        requestInfo = requests.get(
+            'https://api.comunio.de/users/' + str(userid) + '/squad', headers=headersInfo)
+
+        marktwert = 0
+        jsonData = json.loads(requestInfo.text)
+        for item in jsonData['items']:
+            item['quotedprice']
+            marktwert = marktwert + int(item['quotedprice'])
+
+        return marktwert
+
 
     #----------------------------------------------------------------------
     def getAllUserIds(self):
@@ -186,7 +206,6 @@ class Bot:
 
         requestStanding = requests.get('https://api.comunio.de/communities/' + self.communityid +
                                        '/standings', headers=headersStandings, params=paramsStandings)
-
         jsonData = json.loads(requestStanding.text)
         tempid = ''
         # workaround to get id of object that stores all user ids
@@ -352,17 +371,14 @@ class MouseEventFrame(wx.Frame):
         # Sizer implementation
         topSizer = wx.BoxSizer(wx.VERTICAL) # parent sizer
         loginSizer = wx.BoxSizer(wx.HORIZONTAL) # sizer of login objects
+        praemienSizer = wx.GridSizer(rows=1, cols=2, hgap=5, vgap=5) # sizer for transaction button
         self.outputSizer = wx.StaticBox(self.panel, -1, 'Ausgabe:', size=(495, 305)) # static sizer around output console
         outputSizer = wx.StaticBoxSizer(self.outputSizer, wx.VERTICAL) # sizer for output console
 
-        # welcome text
-        self.buttonTransaction = wx.Button(self.panel, label="Absenden")
-        self.buttonTransaction.Show(False)
-        self.buttonTransaction.Disable()        
+        # welcome text       
         self.welcomeLabel = wx.StaticText(self.panel)
         self.welcomeLabel.Disable()
-        loginSizer.Add(self.welcomeLabel, 0, wx.ALL, 5)
-        loginSizer.Add(self.buttonTransaction, 0, wx.ALL, 5)
+        loginSizer.Add(self.welcomeLabel, 0, wx.CENTER, 5)
 
         # output console
         self.text = wx.TextCtrl(self.panel, size=(490, 300), style=wx.TE_MULTILINE)        
@@ -377,8 +393,21 @@ class MouseEventFrame(wx.Frame):
         loginSizer.Add(self.passwordText, 0, wx.ALL, 5)
         loginSizer.Add(self.buttonLogin, 0, wx.ALL, 5)
 
+        # transaction button and text
+        self.buttonTransaction = wx.Button(self.panel, label="Absenden", size=(70,50))
+        self.buttonTransaction.Disable()
+        myFont = wx.Font(
+            15, wx.MODERN, wx.NORMAL, wx.NORMAL, False, u'Default')        
+        self.transactionLabel = wx.StaticText(self.panel, label='Praemien verteilen: ')
+        self.transactionLabel.SetFont(myFont)
+        self.transactionLabel.Disable()
+        praemienSizer.Add(self.transactionLabel, 0, wx.ALIGN_CENTER)
+        praemienSizer.Add(self.buttonTransaction, 0, wx.EXPAND)
+
+
         topSizer.Add(loginSizer, 0, wx.CENTER)
-        topSizer.Add(outputSizer, 0, wx.ALL | wx.EXPAND, 5)
+        topSizer.Add(outputSizer, 0, wx.CENTER, 5)
+        topSizer.Add(praemienSizer, 0, wx.ALL | wx. EXPAND, 5)
         self.panel.SetSizer(topSizer)
         topSizer.Fit(self)
 
@@ -454,7 +483,7 @@ class MouseEventFrame(wx.Frame):
             json.dump(bot.getPlacementAndUserIds(), outfile)
         for item in self.userlist:
             self.text.AppendText('\nuserid: ' + str(item) +
-                                 ', Vermoegen: ' + str(bot.getWealth(item)))
+                                 ', Vermoegen: ' + str(int(bot.getWealth(item)) + int(bot.getUserInfo(item))))
 
     #----------------------------------------------------------------------
     def getInformationsAfterLogin(self):
@@ -468,19 +497,20 @@ class MouseEventFrame(wx.Frame):
         self.communityid = bot.getCommunityId()
         self.userid = bot.getUserId()
         self.userlist = bot.getAllUserIds()
+        for item in self.userlist:
+            bot.getUserInfo(item)
+
 
         # show welcome information
         self.welcomeLabel.Enable()
         self.buttonTransaction.Enable()
-        self.buttonTransaction.Show(True)
-        welcomeLabelFont = wx.Font(
-            15, wx.MODERN, wx.NORMAL, wx.NORMAL, False, u'Consolas')
-        self.welcomeLabel.SetFont(welcomeLabelFont)
-        self.text.AppendText(
-            '\nCommunity ID: ' + self.communityid + '\nEigene User ID: ' + self.userid)
+        labelFont = wx.Font(
+            15, wx.MODERN, wx.NORMAL, wx.NORMAL, False, u'Default')
+        self.welcomeLabel.SetFont(labelFont)
         self.welcomeLabel.SetLabelText(
             'Willkommen, ' + str(bot.getUserName() + '!'))
-        # self.moneyUserId.SetItems(self.userlist)  # add userids to combobox
+        self.text.AppendText(
+            '\nCommunity ID: ' + self.communityid + '\nEigene User ID: ' + self.userid)            
         self.printPlacement()  # print placement of last matchday in output console
 
     #----------------------------------------------------------------------
@@ -489,7 +519,7 @@ class MouseEventFrame(wx.Frame):
         bot.doLogin(self.usernameText.GetValue(),
                     self.passwordText.GetValue())  # execute login
         self.authTokenFromLogin = bot.getAuthToken()  # get authtoken
-
+        #bot.getUserInfo()
         self.panel.Refresh()
 
 ########################################################################
