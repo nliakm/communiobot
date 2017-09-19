@@ -135,10 +135,8 @@ class Bot:
 
         requestInfo = requests.get(
             'https://api.comunio.de/users/' + str(userid) + '/squad-latest', headers=headersInfo)
-
         jsonData = json.loads(requestInfo.text)
-        wealth = int(jsonData['matchday']['budget']) + \
-            int(jsonData['matchday']['totalMarketValue'])
+        wealth = int(jsonData['matchday']['budget'])
         return wealth
 
     #----------------------------------------------------------------------
@@ -154,10 +152,8 @@ class Bot:
             'User-Agent': self.user_agent,
             'Connection': self.connection,
         }
-
         requestInfo = requests.get(
             'https://api.comunio.de/', headers=headersInfo)
-
         jsonData = json.loads(requestInfo.text)
         self.username = jsonData['user']['name']
         self.userid = jsonData['user']['id']
@@ -165,6 +161,30 @@ class Bot:
         self.communityid = jsonData['community']['id']
 
         return requestInfo.status_code
+
+    def getUserInfo(self, userid):
+        """Gets username, userid, communityid and communityname of logged in user."""
+        headersInfo = {
+            'Origin': self.origin,
+            'Accept-Encoding': self.accept_encoding,
+            'Accept-Language': 'en-EN',
+            'Authorization': 'Bearer ' + self.authToken,
+            'Accept': 'application/json, text/plain, */*',
+            'Referer': 'http://www.comunio.de/standings/total',
+            'User-Agent': self.user_agent,
+            'Connection': self.connection,
+        }
+        requestInfo = requests.get(
+            'https://api.comunio.de/users/' + str(userid) + '/squad', headers=headersInfo)
+
+        marktwert = 0
+        jsonData = json.loads(requestInfo.text)
+        for item in jsonData['items']:
+            item['quotedprice']
+            marktwert = marktwert + int(item['quotedprice'])
+
+        return marktwert
+
 
     #----------------------------------------------------------------------
     def getAllUserIds(self):
@@ -186,7 +206,6 @@ class Bot:
 
         requestStanding = requests.get('https://api.comunio.de/communities/' + self.communityid +
                                        '/standings', headers=headersStandings, params=paramsStandings)
-
         jsonData = json.loads(requestStanding.text)
         tempid = ''
         # workaround to get id of object that stores all user ids
@@ -464,7 +483,7 @@ class MouseEventFrame(wx.Frame):
             json.dump(bot.getPlacementAndUserIds(), outfile)
         for item in self.userlist:
             self.text.AppendText('\nuserid: ' + str(item) +
-                                 ', Vermoegen: ' + str(bot.getWealth(item)))
+                                 ', Vermoegen: ' + str(int(bot.getWealth(item)) + int(bot.getUserInfo(item))))
 
     #----------------------------------------------------------------------
     def getInformationsAfterLogin(self):
@@ -478,6 +497,9 @@ class MouseEventFrame(wx.Frame):
         self.communityid = bot.getCommunityId()
         self.userid = bot.getUserId()
         self.userlist = bot.getAllUserIds()
+        for item in self.userlist:
+            bot.getUserInfo(item)
+
 
         # show welcome information
         self.welcomeLabel.Enable()
@@ -497,7 +519,7 @@ class MouseEventFrame(wx.Frame):
         bot.doLogin(self.usernameText.GetValue(),
                     self.passwordText.GetValue())  # execute login
         self.authTokenFromLogin = bot.getAuthToken()  # get authtoken
-
+        #bot.getUserInfo()
         self.panel.Refresh()
 
 ########################################################################
