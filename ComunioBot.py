@@ -335,7 +335,7 @@ class MouseEventFrame(wx.Frame):
         self.userlist = []
 
         wx.Frame.__init__(self, parent, id, 'comuniobot v0.2', size=(
-            500, 405), style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+            700, 405), style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
         self.panel = wx.Panel(self)
 
         # menu bar
@@ -372,7 +372,7 @@ class MouseEventFrame(wx.Frame):
         topSizer = wx.BoxSizer(wx.VERTICAL) # parent sizer
         loginSizer = wx.BoxSizer(wx.HORIZONTAL) # sizer of login objects
         praemienSizer = wx.GridSizer(rows=1, cols=2, hgap=5, vgap=5) # sizer for transaction button
-        self.outputSizer = wx.StaticBox(self.panel, -1, 'Ausgabe:', size=(495, 305)) # static sizer around output console
+        self.outputSizer = wx.StaticBox(self.panel, -1, 'Ausgabe:', size=(695, 305)) # static sizer around output console
         outputSizer = wx.StaticBoxSizer(self.outputSizer, wx.VERTICAL) # sizer for output console
 
         # welcome text       
@@ -381,7 +381,7 @@ class MouseEventFrame(wx.Frame):
         loginSizer.Add(self.welcomeLabel, 0, wx.CENTER, 5)
 
         # output console
-        self.text = wx.TextCtrl(self.panel, size=(490, 300), style=wx.TE_MULTILINE)        
+        self.text = wx.TextCtrl(self.panel, size=(690, 300), style=wx.TE_MULTILINE)        
         self.text.SetEditable(False)
         outputSizer.Add(self.text, 0, wx.ALL, 5)
 
@@ -476,14 +476,15 @@ class MouseEventFrame(wx.Frame):
     #----------------------------------------------------------------------
     def printPlacement(self):
         """Print placements of players into output console."""
-        self.text.AppendText('\nPlatzierungen letzter Spieltag:')
+        self.text.AppendText('\n-----------------------------------\nPlatzierungen letzter Spieltag:')
         bot.getLatestPoints()
-        self.text.AppendText('\nVermoegenswerte der Spieler:')
+        self.text.AppendText('\n-----------------------------------\nVermoegenswerte der Spieler:')
         with open('standings.json', 'w') as outfile:  # save standings into .json file
             json.dump(bot.getPlacementAndUserIds(), outfile)
         for item in self.userlist:
             self.text.AppendText('\nuserid: ' + str(item) +
-                                 ', Vermoegen: ' + str(int(bot.getWealth(item)) + int(bot.getUserInfo(item))))
+                                 ', Vermoegen(aktueller MW + Budget vom letzten Spieltag): '
+                                 + str(int(bot.getWealth(item)) + int(bot.getUserInfo(item))) + ' Euro')
 
     #----------------------------------------------------------------------
     def getInformationsAfterLogin(self):
