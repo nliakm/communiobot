@@ -498,9 +498,6 @@ class MouseEventFrame(wx.Frame):
         self.communityid = bot.getCommunityId()
         self.userid = bot.getUserId()
         self.userlist = bot.getAllUserIds()
-        for item in self.userlist:
-            bot.getUserInfo(item)
-
 
         # show welcome information
         self.welcomeLabel.Enable()
