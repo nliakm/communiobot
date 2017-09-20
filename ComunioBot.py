@@ -565,17 +565,22 @@ class SetStaticRewardsDialog(wx.Dialog):
     def __init__(self):
         """Constructor"""
         wx.Dialog.__init__(
-            self, None, title="Praemien setzen", size=(230, 470))
+            self, None, title="Praemien setzen", size=(230, 770))
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.ticker_ctrls = {}
         ticker_items = []
-        for i in range(int(readConfig('config.ini', '1', 'maxPlayerReward'))):
-            ticker_items.append(readConfig('config.ini', i + 1, 'static'))
+        # for i in range(int(readConfig('config.ini', '1', 'maxPlayerReward'))):
+        #     ticker_items.append(readConfig('config.ini', i + 1, 'static'))
+        for i in range(18):
+            ticker_items.append(readConfig('config.ini', i + 1, 'static'))        
+
         counter = 0
         for item in ticker_items:
             ctrl = wx.TextCtrl(self, value=item, name=item)
             sizer.Add(ctrl, 0, wx.ALL | wx.CENTER, 5)
             self.ticker_ctrls[counter] = ctrl
+            if counter >= int(readConfig('config.ini', '1', 'maxPlayerReward')):
+                self.ticker_ctrls[counter].Disable()
             counter = counter + 1
         okBtn = wx.Button(self, wx.ID_OK)
         sizer.Add(okBtn, 0, wx.ALL | wx.CENTER, 5)
@@ -593,8 +598,9 @@ class MyDialog(wx.Dialog):
         wx.Dialog.__init__(self, None, title="Platzierung", size=(100, 100))
         self.value = readConfig('config.ini', '1', 'maxPlayerReward')
         self.comboBox1 = wx.ComboBox(self,
-                                     choices=['1', '2', '3', '4', '5',
-                                              '6', '7', '8', '9', '10'],
+                                     choices=['1', '2', '3', '4', '5', '6',
+                                            '7', '8', '9', '10', '11', '12',
+                                            '13', '14', '15', '16', '17', '18'],
                                      value=self.value)
         self.comboBox1.SetEditable(False)
         okBtn = wx.Button(self, wx.ID_OK)

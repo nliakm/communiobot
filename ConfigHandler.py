@@ -6,7 +6,9 @@ def createConfig():
     """"""
     if (not checkIfFileExists('config.ini')):
         config = configparser.ConfigParser()
-        config['Feste Praemien'] = {'1': '10000', '2': '9000', '3': '8000', '4': '7000', '5': '6000', '6': '5000', '7': '4000', '8': '3000', '9': '2000', '10': '1000'}
+        config['Feste Praemien'] = {'1': '10000', '2': '9000', '3': '8000', '4': '7000', '5': '6000', '6': '5000'
+            , '7': '4000', '8': '3000', '9': '2000', '10': '1000', '11': '900', '12:': '800'
+            , '13': '700', '14': '600', '15': '500', '16': '400', '17': '300', '18': '200'}
         config['Punkte basiert'] = {'Multiplikator': '1000'}
         config['Letzte Praemienplatzierung'] = {'Max_Platzierung': '4'}
         with open('config.ini', 'w') as configfile:
