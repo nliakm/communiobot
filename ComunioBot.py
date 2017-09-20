@@ -1,3 +1,4 @@
+ # -*- coding: utf-8 -*-
 import wx
 import argparse
 import configparser
@@ -11,8 +12,6 @@ from ConfigHandler import updateConfigStaticRewards
 import sys
 ########################################################################
 
-reload(sys)
-sys.setdefaultencoding('utf8')
 
 
 class Bot:
