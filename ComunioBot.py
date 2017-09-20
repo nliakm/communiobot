@@ -302,6 +302,7 @@ class Bot:
 
         configfile -- configfile that is used (default config.ini) 
         """
+        frame.text.AppendText('\n-----------------------------------')        
         counter = 1  # needed for display placement number in output console
         for entry in self.placement_and_userids:
             # check last placement for reward
@@ -542,6 +543,7 @@ class MouseEventFrame(wx.Frame):
     #----------------------------------------------------------------------
     def OnButtonClick(self, event):
         """Starts the login."""
+        #self.text.AppendText("\nLogin...Bitte warten!\n")
         bot.doLogin(self.usernameText.GetValue(),
                     self.passwordText.GetValue())  # execute login
         self.authTokenFromLogin = bot.getAuthToken()  # get authtoken
