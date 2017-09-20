@@ -8,9 +8,11 @@ from ConfigHandler import createConfig
 from ConfigHandler import updateConfig
 from ConfigHandler import readConfig
 from ConfigHandler import updateConfigStaticRewards
-
+import sys
 ########################################################################
 
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 class Bot:
     """"""
@@ -25,6 +27,8 @@ class Bot:
         self.list_userids = []  # list of all userids in community of logged in user
         self.placement_and_userids = []  # dict with userid as key and placement as value
         self.leaguename = ''  # name of community
+        self.leader = False
+        self.lastMatchday = ''
 
         # HTTP Header parameters
         self.authToken = ''  # authtoken to perform http request as a logged in user
@@ -65,17 +69,15 @@ class Bot:
         try:
             requestLogin = self.session.post(
                 'https://api.comunio.de/login', headers=headersLogin, data=dataLogin)
-            requestLogin.encoding = 'utf-8'
+            #requestLogin.encoding = 'iso-8859-15'
 
             if not requestLogin.status_code // 100 == 2:
                 errorData = json.loads(requestLogin.text)
-                frame.text.AppendText(
-                    'Login fehlgeschlagen!\nError: Unexpected response {}'.format(requestLogin))
-                # errorText = errorData['error_description'].decode('latin-1').encode('utf-8')
-                # try: frame.text.AppendText(str(errorText))
-                # except KeyError:
-                #     frame.text.AppendText('Login fehlgeschlagen!\nError: Unexpected response {}'.format(requestLogin))
-                return 'Error: Unexpected response {}'.format(requestLogin)
+                errorText = errorData['error_description']
+                try: frame.text.AppendText(str(errorText))
+                except KeyError:
+                    frame.text.AppendText('Login fehlgeschlagen!\nError: Unexpected response {}'.format(requestLogin))
+                return errorText
 
             jsonData = json.loads(requestLogin.text)
             frame.text.AppendText(
@@ -89,12 +91,21 @@ class Bot:
         except requests.exceptions.RequestException as e:
             frame.text.AppendText(
                 'Login fehlgeschlagen!\nError: Unexpected response {}'.format(e))
-            return 'Error: {}'.format(e)
 
     #----------------------------------------------------------------------
     def getAuthToken(self):
         """Getter for authtoken."""
         return self.authToken
+
+    #----------------------------------------------------------------------
+    def getLeaderStatus(self):
+        """Getter for leader."""
+        return self.leader
+
+    #----------------------------------------------------------------------
+    def getLastMatchDay(self):
+        """Getter for last matchday."""
+        return self.lastMatchday
 
     #----------------------------------------------------------------------
     def getPlacementAndUserIds(self):
@@ -118,7 +129,7 @@ class Bot:
 
     #----------------------------------------------------------------------
     def getWealth(self, userid):
-        """Get value of team and budget.
+        """Get budget of user from last matchday.
 
         userid -- userid of user
         """
@@ -157,6 +168,7 @@ class Bot:
         jsonData = json.loads(requestInfo.text)
         self.username = jsonData['user']['name']
         self.userid = jsonData['user']['id']
+        self.leader = jsonData['user']['isLeader']
         self.leaguename = jsonData['community']['name']
         self.communityid = jsonData['community']['id']
 
@@ -236,9 +248,8 @@ class Bot:
 
         requestLatestStanding = requests.get(
             'https://api.comunio.de/communities/' + self.communityid + '/standings', headers=headers, params=params)
-
         jsonData = json.loads(requestLatestStanding.text)  # print jsonData
-
+        self.lastMatchday = jsonData['_embedded']['formerEventsWithPoints']['events'][0]['event']
         # function to be able to sort by points
         def myFn(s):
             return s['totalPoints']
@@ -255,11 +266,6 @@ class Bot:
                 data)  # append json object to json
             self.placement_and_userids = sorted(
                 self.placement_and_userids, key=myFn, reverse=True)  # sort by points
-        counter = 0
-        for entry in self.placement_and_userids:
-            counter = counter + 1
-            frame.text.AppendText('\n' + str(counter) + '. Platz mit ' + str(
-                entry['totalPoints']) + ' Punkten: ' + str(entry['name']) + '(' + str(entry['userid']) + ')')
 
     #----------------------------------------------------------------------
     def sendMoney(self, communityid, userid, amount, reason):
@@ -456,7 +462,10 @@ class MouseEventFrame(wx.Frame):
     #----------------------------------------------------------------------
     def clickTransaction(self, event):
         """Call the executeTransaction method"""
-        bot.executeTransaction('config.ini')
+        if(bot.getLeaderStatus()):
+            bot.executeTransaction('config.ini')
+        else:
+             wx.MessageBox('Du bist kein Communityleader!', 'Fehler!',wx.OK | wx.ICON_ERROR, self.panel)            
 
     # #----------------------------------------------------------------------
     # def myClick(self, event):
@@ -476,14 +485,20 @@ class MouseEventFrame(wx.Frame):
     #----------------------------------------------------------------------
     def printPlacement(self):
         """Print placements of players into output console."""
-        self.text.AppendText('\n-----------------------------------\nPlatzierungen letzter Spieltag:')
         bot.getLatestPoints()
+        self.text.AppendText('\n-----------------------------------\nPlatzierungen vom ' + str(bot.getLastMatchDay()) + ':')
+        counter = 0
+        for entry in bot.getPlacementAndUserIds():
+            counter = counter + 1
+            frame.text.AppendText('\n' + str(counter) + '. Platz mit ' + str(
+                entry['totalPoints']) + ' Punkten: ' + str(entry['name']) + '(User ID: ' + str(entry['userid'])
+                + ') - Kontostand am Spieltag: ' + str(bot.getWealth(entry['userid'])) + ' Euro')        
         self.text.AppendText('\n-----------------------------------\nVermoegenswerte der Spieler:')
         with open('standings.json', 'w') as outfile:  # save standings into .json file
             json.dump(bot.getPlacementAndUserIds(), outfile)
         for item in self.userlist:
             self.text.AppendText('\nuserid: ' + str(item) +
-                                 ', Vermoegen(aktueller MW + Budget vom letzten Spieltag): '
+                                 ', Vermoegen(aktueller MW + Kontostand vom letzten Spieltag): '
                                  + str(int(bot.getWealth(item)) + int(bot.getUserInfo(item))) + ' Euro')
 
     #----------------------------------------------------------------------
