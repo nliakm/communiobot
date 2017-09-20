@@ -1,16 +1,15 @@
 # comuniobot
-Programm zur automatisierter Vergabe von Prämien nach einem Spieltag
+Programm zur automatisierten Vergabe von Prämien nach einem Spieltag.
 
 <h1>Verwendung</h1>
 <h2>Installation auf Windows</h2>
-Auf dem System muss Python 3.x installiert sein.
-Als Zusatzmodule müssen requests und wxPython installiert sein.<br>
+Auf dem System muss Python 3.x mit den Pythonmodulen requests und wxPython installiert sein.<br>
 Zuerst Python 3.x installieren: https://www.python.org/downloads/<br>
 Nach Installation müssen die Umgebungsvariablen gesetzt werden(Zum Vergrößern aufs Bild klicken):<br>
 <img src="https://raw.githubusercontent.com/nliakm/comuniobot/master/ReadmeImages/pythonInstallationWin10PS.png" /> <br><br>
-Anschließend cmd Shell öffnen, 'python --version' eingeben, um sicherzustellen, dass Python korrekt installiert ist. Das Ergebnis sollte folgendermaßen aussehen:<br>
+Anschließend cmd Shell öffnen und 'python --version' eingeben, um sicherzustellen, dass Python korrekt installiert ist. Das Ergebnis sollte folgendermaßen aussehen:<br>
 <img src="https://raw.githubusercontent.com/nliakm/comuniobot/master/ReadmeImages/cmdPythonVersion.png" />
-Nun requests und wxPython mit folgendem Befehl installieren:<br>
+Als letztes requests und wxPython mit folgendem Befehl installieren:<br>
 <img src="https://raw.githubusercontent.com/nliakm/comuniobot/master/ReadmeImages/pythonInstallRequestAndWxPython.png" />
 Nun sind alle Voraussetzungen installiert und das Programm kann gestartet werden. 
 

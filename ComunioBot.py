@@ -14,6 +14,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
 
+
 class Bot:
     """"""
     #----------------------------------------------------------------------
@@ -74,9 +75,11 @@ class Bot:
             if not requestLogin.status_code // 100 == 2:
                 errorData = json.loads(requestLogin.text)
                 errorText = errorData['error_description']
-                try: frame.text.AppendText(str(errorText))
+                try:
+                    frame.text.AppendText(str(errorText))
                 except KeyError:
-                    frame.text.AppendText('Login fehlgeschlagen!\nError: Unexpected response {}'.format(requestLogin))
+                    frame.text.AppendText(
+                        'Login fehlgeschlagen!\nError: Unexpected response {}'.format(requestLogin))
                 return errorText
 
             jsonData = json.loads(requestLogin.text)
@@ -197,7 +200,6 @@ class Bot:
 
         return marktwert
 
-
     #----------------------------------------------------------------------
     def getAllUserIds(self):
         """Gets all userids from community and store them into a list."""
@@ -251,6 +253,7 @@ class Bot:
         jsonData = json.loads(requestLatestStanding.text)  # print jsonData
         self.lastMatchday = jsonData['_embedded']['formerEventsWithPoints']['events'][0]['event']
         # function to be able to sort by points
+
         def myFn(s):
             return s['totalPoints']
 
@@ -375,41 +378,48 @@ class MouseEventFrame(wx.Frame):
         self.SetMenuBar(menuBar)
 
         # Sizer implementation
-        topSizer = wx.BoxSizer(wx.VERTICAL) # parent sizer
-        loginSizer = wx.BoxSizer(wx.HORIZONTAL) # sizer of login objects
-        praemienSizer = wx.GridSizer(rows=1, cols=2, hgap=5, vgap=5) # sizer for transaction button
-        self.outputSizer = wx.StaticBox(self.panel, -1, 'Ausgabe:', size=(695, 305)) # static sizer around output console
-        outputSizer = wx.StaticBoxSizer(self.outputSizer, wx.VERTICAL) # sizer for output console
+        topSizer = wx.BoxSizer(wx.VERTICAL)  # parent sizer
+        loginSizer = wx.BoxSizer(wx.HORIZONTAL)  # sizer of login objects
+        # sizer for transaction button
+        praemienSizer = wx.GridSizer(rows=1, cols=2, hgap=5, vgap=5)
+        # static sizer around output console
+        self.outputSizer = wx.StaticBox(
+            self.panel, -1, 'Ausgabe:', size=(695, 305))
+        outputSizer = wx.StaticBoxSizer(
+            self.outputSizer, wx.VERTICAL)  # sizer for output console
 
-        # welcome text       
+        # welcome text
         self.welcomeLabel = wx.StaticText(self.panel)
         self.welcomeLabel.Disable()
         loginSizer.Add(self.welcomeLabel, 0, wx.CENTER, 5)
 
         # output console
-        self.text = wx.TextCtrl(self.panel, size=(690, 300), style=wx.TE_MULTILINE)        
+        self.text = wx.TextCtrl(self.panel, size=(
+            690, 300), style=wx.TE_MULTILINE)
         self.text.SetEditable(False)
         outputSizer.Add(self.text, 0, wx.ALL, 5)
 
         # Login objects
         self.usernameText = wx.TextCtrl(self.panel, value="username")
-        self.passwordText = wx.TextCtrl(self.panel, value="password", style=wx.TE_PASSWORD)
+        self.passwordText = wx.TextCtrl(
+            self.panel, value="password", style=wx.TE_PASSWORD)
         self.buttonLogin = wx.Button(self.panel, label="Login")
         loginSizer.Add(self.usernameText, 0, wx.ALL, 5)
         loginSizer.Add(self.passwordText, 0, wx.ALL, 5)
         loginSizer.Add(self.buttonLogin, 0, wx.ALL, 5)
 
         # transaction button and text
-        self.buttonTransaction = wx.Button(self.panel, label="Absenden", size=(70,50))
+        self.buttonTransaction = wx.Button(
+            self.panel, label="Absenden", size=(70, 50))
         self.buttonTransaction.Disable()
         myFont = wx.Font(
-            15, wx.MODERN, wx.NORMAL, wx.NORMAL, False, u'Default')        
-        self.transactionLabel = wx.StaticText(self.panel, label='Praemien verteilen: ')
+            15, wx.MODERN, wx.NORMAL, wx.NORMAL, False, u'Default')
+        self.transactionLabel = wx.StaticText(
+            self.panel, label='Praemien verteilen: ')
         self.transactionLabel.SetFont(myFont)
         self.transactionLabel.Disable()
         praemienSizer.Add(self.transactionLabel, 0, wx.ALIGN_CENTER)
         praemienSizer.Add(self.buttonTransaction, 0, wx.EXPAND)
-
 
         topSizer.Add(loginSizer, 0, wx.CENTER)
         topSizer.Add(outputSizer, 0, wx.CENTER, 5)
@@ -465,7 +475,8 @@ class MouseEventFrame(wx.Frame):
         if(bot.getLeaderStatus()):
             bot.executeTransaction('config.ini')
         else:
-             wx.MessageBox('Du bist kein Communityleader!', 'Fehler!',wx.OK | wx.ICON_ERROR, self.panel)            
+            wx.MessageBox('Du bist kein Communityleader!',
+                          'Fehler!', wx.OK | wx.ICON_ERROR, self.panel)
 
     # #----------------------------------------------------------------------
     # def myClick(self, event):
@@ -486,14 +497,16 @@ class MouseEventFrame(wx.Frame):
     def printPlacement(self):
         """Print placements of players into output console."""
         bot.getLatestPoints()
-        self.text.AppendText('\n-----------------------------------\nPlatzierungen vom ' + str(bot.getLastMatchDay()) + ':')
+        self.text.AppendText(
+            '\n-----------------------------------\nPlatzierungen vom ' + str(bot.getLastMatchDay()) + ':')
         counter = 0
         for entry in bot.getPlacementAndUserIds():
             counter = counter + 1
             frame.text.AppendText('\n' + str(counter) + '. Platz mit ' + str(
                 entry['totalPoints']) + ' Punkten: ' + str(entry['name']) + '(User ID: ' + str(entry['userid'])
-                + ') - Kontostand am Spieltag: ' + str(bot.getWealth(entry['userid'])) + ' Euro')        
-        self.text.AppendText('\n-----------------------------------\nVermoegenswerte der Spieler:')
+                + ') - Kontostand am Spieltag: ' + str(bot.getWealth(entry['userid'])) + ' Euro')
+        self.text.AppendText(
+            '\n-----------------------------------\nVermoegenswerte der Spieler:')
         with open('standings.json', 'w') as outfile:  # save standings into .json file
             json.dump(bot.getPlacementAndUserIds(), outfile)
         for item in self.userlist:
@@ -523,7 +536,7 @@ class MouseEventFrame(wx.Frame):
         self.welcomeLabel.SetLabelText(
             'Willkommen, ' + str(bot.getUserName() + '!'))
         self.text.AppendText(
-            '\nCommunity ID: ' + self.communityid + '\nEigene User ID: ' + self.userid)            
+            '\nCommunity ID: ' + self.communityid + '\nEigene User ID: ' + self.userid)
         self.printPlacement()  # print placement of last matchday in output console
 
     #----------------------------------------------------------------------
@@ -532,7 +545,7 @@ class MouseEventFrame(wx.Frame):
         bot.doLogin(self.usernameText.GetValue(),
                     self.passwordText.GetValue())  # execute login
         self.authTokenFromLogin = bot.getAuthToken()  # get authtoken
-        #bot.getUserInfo()
+        # bot.getUserInfo()
         self.panel.Refresh()
 
 ########################################################################
@@ -569,10 +582,8 @@ class SetStaticRewardsDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.ticker_ctrls = {}
         ticker_items = []
-        # for i in range(int(readConfig('config.ini', '1', 'maxPlayerReward'))):
-        #     ticker_items.append(readConfig('config.ini', i + 1, 'static'))
-        for i in range(18):
-            ticker_items.append(readConfig('config.ini', i + 1, 'static'))        
+        for i in range(18):  # add static reward values to array
+            ticker_items.append(readConfig('config.ini', i + 1, 'static'))
 
         counter = 0
         for item in ticker_items:
@@ -580,6 +591,7 @@ class SetStaticRewardsDialog(wx.Dialog):
             sizer.Add(ctrl, 0, wx.ALL | wx.CENTER, 5)
             self.ticker_ctrls[counter] = ctrl
             if counter >= int(readConfig('config.ini', '1', 'maxPlayerReward')):
+                # disable input fields outside of reward range
                 self.ticker_ctrls[counter].Disable()
             counter = counter + 1
         okBtn = wx.Button(self, wx.ID_OK)
@@ -595,18 +607,18 @@ class MyDialog(wx.Dialog):
     #----------------------------------------------------------------------
     def __init__(self):
         """Constructor"""
-        wx.Dialog.__init__(self, None, title="Platzierung", size=(100, 100))
+        wx.Dialog.__init__(self, None, size=(130, 100))
         self.value = readConfig('config.ini', '1', 'maxPlayerReward')
         self.comboBox1 = wx.ComboBox(self,
                                      choices=['1', '2', '3', '4', '5', '6',
-                                            '7', '8', '9', '10', '11', '12',
-                                            '13', '14', '15', '16', '17', '18'],
+                                              '7', '8', '9', '10', '11', '12',
+                                              '13', '14', '15', '16', '17', '18'],
                                      value=self.value)
         self.comboBox1.SetEditable(False)
         okBtn = wx.Button(self, wx.ID_OK)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.comboBox1, 0, wx.ALL | wx.CENTER, 5)
+        sizer.Add(self.comboBox1, 0, wx.ALL | wx.CENTER | wx.EXPAND, 5)
         sizer.Add(okBtn, 0, wx.ALL | wx.CENTER, 5)
         self.SetSizer(sizer)
 
