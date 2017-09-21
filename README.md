@@ -5,8 +5,8 @@
                       / __/ _ \| '_ ` _ \| | | | '_ \| |/ _ \| '_ \ / _ \| __|
                      | (_| (_) | | | | | | |_| | | | | | (_) | |_) | (_) | |_ 
                       \___\___/|_| |_| |_|\__,_|_| |_|_|\___/|_.__/ \___/ \__| 
+                 Programm zur automatisierten Vergabe von Prämien nach einem Spieltag.
 ````
-Programm zur automatisierten Vergabe von Prämien nach einem Spieltag.
 
 <h1>Verwendung</h1>
 <h2>Installation auf Windows</h2>
