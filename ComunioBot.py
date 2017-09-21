@@ -447,7 +447,6 @@ class MouseEventFrame(wx.Frame):
         """Dialog to check for updates."""
         releaseRequest = requests.get('https://api.github.com/repos/nliakm/comuniobot/releases/latest')
         jsonData = json.loads(releaseRequest.text)
-        print(jsonData)
         if int(jsonData['name']) > self.currentVersion:
             if self.YesNo():
                 downloadRequest = requests.get(jsonData['zipball_url'], stream=True)
