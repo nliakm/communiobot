@@ -39,6 +39,7 @@ Dieser Wert legt fest, bis zu welcher Platzierung (ausgehend von Platz 1) Prämi
 Hier lässt sich einstellen, welche Platzierung welchen festen Betrag als Prämie bekommt (sofern der Modus 'Feste Prämien' aktiv ist)<br><br>
 3. Multiplikator anpassen<br>
 Hier kann man den Multiplikator einstellen, der mit den Punkten eines Spielers multipliziert wird, dessen Ergebnis die Prämie ist (sofern der Modus 'Punkte basiert' aktiv ist))
+<br>
 4. Auf Updates prüfen<br>
 Checken, ob eine aktuellere Version verfügbar ist. Wenn ja, im Dialogfenster den Download bestätigen. Die neue Version wird als .zip in den aktuellen Ordner gedownloadet. Einfach entpacken (optional die alten Konfigurationsdateien in den neuen Ordner ziehen) und starten.
 
