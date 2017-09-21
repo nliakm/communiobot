@@ -1,5 +1,12 @@
-# comuniobot
-Programm zur automatisierten Vergabe von Prämien nach einem Spieltag.
+````
+                                                      _       _           _   
+                                                     (_)     | |         | |  
+                       ___ ___  _ __ ___  _   _ _ __  _  ___ | |__   ___ | |_ 
+                      / __/ _ \| '_ ` _ \| | | | '_ \| |/ _ \| '_ \ / _ \| __|
+                     | (_| (_) | | | | | | |_| | | | | | (_) | |_) | (_) | |_ 
+                      \___\___/|_| |_| |_|\__,_|_| |_|_|\___/|_.__/ \___/ \__| 
+````
+Programm zur automatisierten Vergabe von Prämien nach einem Spieltag. M
 
 <h1>Verwendung</h1>
 <h2>Installation auf Windows</h2>
