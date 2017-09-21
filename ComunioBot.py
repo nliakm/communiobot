@@ -448,7 +448,7 @@ class MouseEventFrame(wx.Frame):
         releaseRequest = requests.get('https://api.github.com/repos/nliakm/comuniobot/releases/latest')
         jsonData = json.loads(releaseRequest.text)
         print(jsonData)
-        if int(jsonData['body']) > self.currentVersion:
+        if int(jsonData['name']) > self.currentVersion:
             if self.YesNo():
                 downloadRequest = requests.get(jsonData['zipball_url'], stream=True)
                 with open('./comuniobot'+jsonData['tag_name']+'.zip', 'wb') as fd:
