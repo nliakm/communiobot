@@ -11,7 +11,7 @@
 ## Installation auf Windows
 Auf dem System muss Python 3.x mit den Pythonmodulen requests und wxPython installiert sein.<br>
 Zuerst Python 3.x installieren: https://www.python.org/downloads/<br>
-Wichtig, den Haken bei 'Add Python 3.x to Path' setzen:<br>
+Wichtig, den Haken bei 'Add Python 3.x to PATH' setzen:<br>
 <img width="50%" src=http://otree.readthedocs.io/en/latest/_images/py-win-installer.png /> <br>
 Anschließend cmd Shell öffnen und 'python --version' eingeben, um sicherzustellen, dass Python korrekt installiert ist. Das Ergebnis sollte folgendermaßen aussehen:<br>
 <img src="https://raw.githubusercontent.com/nliakm/comuniobot/master/ReadmeImages/cmdPythonVersion.png" /><br>
@@ -28,17 +28,19 @@ Nach ein paar Sekunden wird es eine Rückmeldung geben, ob der Login erfolgreich
 #### Modus
 Über den Tab Modus kann man folgende Einstellungen vornehmen:<br><br>
 1. Feste Praemien<br>
-Hier werden pro Platzierung feste Betraege dem jeweiligen Spieler gutgeschrieben.<br><br>
+Hier werden pro Platzierung feste Beträge dem jeweiligen Spieler gutgeschrieben.<br><br>
 2. Punkte basiert<br>
-Hier werden die Punkte mit einem selbst definierbaren Wert multipliziert, dessen Ergebnis die Praemie des jeweiligen Spielers ist.
+Hier werden die Punkte mit einem selbst definierbaren Wert multipliziert, dessen Ergebnis die Prämie des jeweiligen Spielers ist.
 #### Datei
 Über den Tab "Datei" kann man folgende Einstellungen vornehmen:<br><br>
-1. Letzte Platzierung fuer Pramie<br>
-Dieser Wert legt fest, bis zu welcher Platzierung (ausgehend von Platz 1) Praemien vergeben werden sollen.<br><br>
-2. Feste Praemien setzen<br>
-Hier laesst sich einstellen, welche Platzierung welchen festen Betrag als Praemie bekommt (sofern der Modus 'Feste Praemien' aktiv ist)<br><br>
+1. Letzte Platzierung fuer Prämie<br>
+Dieser Wert legt fest, bis zu welcher Platzierung (ausgehend von Platz 1) Prämien vergeben werden sollen.<br><br>
+2. Feste Prämien setzen<br>
+Hier lässt sich einstellen, welche Platzierung welchen festen Betrag als Prämie bekommt (sofern der Modus 'Feste Prämien' aktiv ist)<br><br>
 3. Multiplikator anpassen<br>
-Hier kann man den Multiplikator einstellen, der mit den Punkten eines Spielers multipliziert wird, dessen Ergebnis die Praemie ist (sofern der Modus 'Punkte basiert' aktiv ist))
+Hier kann man den Multiplikator einstellen, der mit den Punkten eines Spielers multipliziert wird, dessen Ergebnis die Prämie ist (sofern der Modus 'Punkte basiert' aktiv ist))
+4. Auf Updates prüfen<br>
+Checken, ob eine aktuellere Version verfügbar ist. Wenn ja, im Dialogfenster den Download bestätigen. Die neue Version wird als .zip in den aktuellen Ordner gedownloadet. Einfach entpacken (optional die alten Konfigurationsdateien in den neuen Ordner ziehen) und starten.
 
 ## Troubleshooting
 Sollte in der cmd-Shell der Befehl python nicht gefunden werden, ist normalerweise die Umgebungsvariable für Python nicht (korrekt) gesetzt.<br>
