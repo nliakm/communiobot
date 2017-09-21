@@ -447,7 +447,6 @@ class MouseEventFrame(wx.Frame):
         """Dialog to check for updates."""
         releaseRequest = requests.get('https://api.github.com/repos/nliakm/comuniobot/releases/latest')
         jsonData = json.loads(releaseRequest.text)
-        print(jsonData['id'])
         if int(jsonData['id']) > self.currentVersion:
             if self.YesNo():
                 downloadRequest = requests.get(jsonData['zipball_url'], stream=True)
@@ -457,6 +456,7 @@ class MouseEventFrame(wx.Frame):
                 wx.MessageBox('Download abgeschlossen!',
                           'Download', wx.OK | wx.ICON_INFORMATION, self.panel)
                 self.open_folder(path='.')
+        else: wx.MessageBox('comuniobot ist auf dem neuesten Stand!', 'Kein Update verfügbar', wx.OK | wx.ICON_INFORMATION, self.panel)
 
     #----------------------------------------------------------------------
     def open_folder(self, path):
