@@ -6,13 +6,13 @@
                      | (_| (_) | | | | | | |_| | | | | | (_) | |_) | (_) | |_ 
                       \___\___/|_| |_| |_|\__,_|_| |_|_|\___/|_.__/ \___/ \__| 
 ````
-Programm zur automatisierten Vergabe von Prämien nach einem Spieltag. M
+Programm zur automatisierten Vergabe von Prämien nach einem Spieltag.
 
 <h1>Verwendung</h1>
 <h2>Installation auf Windows</h2>
 Auf dem System muss Python 3.x mit den Pythonmodulen requests und wxPython installiert sein.<br>
 Zuerst Python 3.x installieren: https://www.python.org/downloads/<br>
-Wichtig, den Haken bei 'Add Python to Path' setzen:
+Wichtig, den Haken bei 'Add Python 3.x to Path' setzen:
 <img src=http://otree.readthedocs.io/en/latest/_images/py-win-installer.png /> <br>
 Anschließend cmd Shell öffnen und 'python --version' eingeben, um sicherzustellen, dass Python korrekt installiert ist. Das Ergebnis sollte folgendermaßen aussehen:<br>
 <img src="https://raw.githubusercontent.com/nliakm/comuniobot/master/ReadmeImages/cmdPythonVersion.png" /><br>
