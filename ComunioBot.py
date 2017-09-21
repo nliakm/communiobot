@@ -9,6 +9,7 @@ from ConfigHandler import createConfig
 from ConfigHandler import updateConfig
 from ConfigHandler import readConfig
 from ConfigHandler import updateConfigStaticRewards
+import subprocess
 import sys
 ########################################################################
 
@@ -337,13 +338,14 @@ class MouseEventFrame(wx.Frame):
 
     def __init__(self, parent, id):
 
+        self.currentVersion = 7742314
         self.authTokenFromLogin = ''
         self.communityid = ''
         self.userid = ''
         self.username = ''
         self.userlist = []
 
-        wx.Frame.__init__(self, parent, id, 'comuniobot v0.2', size=(
+        wx.Frame.__init__(self, parent, id, 'comuniobot', size=(
             700, 405), style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
         self.panel = wx.Panel(self)
 
@@ -351,24 +353,26 @@ class MouseEventFrame(wx.Frame):
         menuBar = wx.MenuBar()
         menu = wx.Menu()
         maxPlayerGetRewardMenuItem = menu.Append(wx.NewId(
-        ), 'Letzte Platzierung fuer Praemie', 'Letzte Platzierung, die eine Praemie erhaelt')
+        ), 'Letzte Platzierung fuer Prämie', 'Letzte Platzierung, die eine Prämie erhält')
         staticRewardsMenuItem = menu.Append(
-            wx.NewId(), 'Feste Praemien setzen', 'Setze die festen Praemien')
+            wx.NewId(), 'Feste Prämien setzen', 'Setze die festen Prämien')
         multiplierMenuItem = menu.Append(
             wx.NewId(), 'Multiplikator anpassen', 'Den Multiplikator anpassen')
+        updateMenuItem = menu.Append(wx.NewId(), 'Auf Updates prüfen', 'nach aktuellerer Version suchen')
         exitMenuItem = menu.Append(wx.NewId(), "Beenden",
                                    "Programm beenden")
         menuBar.Append(menu, "&Datei")
 
         self.radioMenu = wx.Menu()
         self.staticReward = self.radioMenu.Append(wx.NewId(), "Feste Praemien",
-                                                  "Die Spieler bekommen je nach Platzierung feste Betraege",
+                                                  "Die Spieler bekommen je nach Platzierung feste Beträge",
                                                   wx.ITEM_RADIO)
         self.multiplierReward = self.radioMenu.Append(wx.NewId(), "Punkte basiert",
                                                       "Punkte als Multiplikator eines festen Betrags",
                                                       wx.ITEM_RADIO)
         menuBar.Append(self.radioMenu, "&Modus")
 
+        self.Bind(wx.EVT_MENU, self.onCheckUpdatesDialog, updateMenuItem)
         self.Bind(wx.EVT_MENU, self.onExit, exitMenuItem)
         self.Bind(wx.EVT_MENU, self.onMaxPlayGetRewardDialog,
                   maxPlayerGetRewardMenuItem)
@@ -429,6 +433,42 @@ class MouseEventFrame(wx.Frame):
 
         self.Bind(wx.EVT_BUTTON, self.clickTransaction, self.buttonTransaction)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClick, self.buttonLogin)
+
+ #----------------------------------------------------------------------
+    def YesNo(self):
+        """Messagebox for updates."""
+        dlg = wx.MessageDialog(self, 'Update herunterladen?', 'Update verfügbar', wx.YES_NO | wx.ICON_INFORMATION)
+        result = dlg.ShowModal() == wx.ID_YES
+        dlg.Destroy()
+        return result
+
+    #----------------------------------------------------------------------
+    def onCheckUpdatesDialog(self, event):
+        """Dialog to check for updates."""
+        releaseRequest = requests.get('https://api.github.com/repos/nliakm/comuniobot/releases/latest')
+        jsonData = json.loads(releaseRequest.text)
+        if int(jsonData['id']) > self.currentVersion:
+            if self.YesNo():
+                downloadRequest = requests.get(jsonData['zipball_url'], stream=True)
+                with open('./comuniobot'+jsonData['tag_name']+'.zip', 'wb') as fd:
+                    for chunk in downloadRequest.iter_content(chunk_size=512):
+                        fd.write(chunk)
+                wx.MessageBox('Download abgeschlossen!',
+                          'Download', wx.OK | wx.ICON_INFORMATION, self.panel)
+                self.open_folder(path='.')
+
+    #----------------------------------------------------------------------
+    def open_folder(self, path):
+        """Open directory."""
+        if sys.platform == 'darwin':
+            subprocess.check_call(['open', '--', path])
+            return 0
+        elif sys.platform == 'linux2':
+            subprocess.check_call(['gnome-open', '--', path])
+            return 0
+        elif sys.platform == 'win32':
+            subprocess.check_call(['explorer', path])
+            return 0
 
     #----------------------------------------------------------------------
     def onMultiplierDialog(self, event):
