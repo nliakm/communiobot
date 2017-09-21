@@ -12,7 +12,7 @@
 Auf dem System muss Python 3.x mit den Pythonmodulen requests und wxPython installiert sein.<br>
 Zuerst Python 3.x installieren: https://www.python.org/downloads/<br>
 Wichtig, den Haken bei 'Add Python 3.x to Path' setzen:<br>
-<img width="75%" src=http://otree.readthedocs.io/en/latest/_images/py-win-installer.png /> <br>
+<img width="50%" src=http://otree.readthedocs.io/en/latest/_images/py-win-installer.png /> <br>
 Anschließend cmd Shell öffnen und 'python --version' eingeben, um sicherzustellen, dass Python korrekt installiert ist. Das Ergebnis sollte folgendermaßen aussehen:<br>
 <img src="https://raw.githubusercontent.com/nliakm/comuniobot/master/ReadmeImages/cmdPythonVersion.png" /><br>
 Als letztes requests und wxPython mit folgendem Befehl installieren:<br>
