@@ -338,7 +338,7 @@ class MouseEventFrame(wx.Frame):
 
     def __init__(self, parent, id):
 
-        self.currentVersion = 7742314
+        self.currentVersion = 7845322
         self.authTokenFromLogin = ''
         self.communityid = ''
         self.userid = ''
@@ -447,6 +447,7 @@ class MouseEventFrame(wx.Frame):
         """Dialog to check for updates."""
         releaseRequest = requests.get('https://api.github.com/repos/nliakm/comuniobot/releases/latest')
         jsonData = json.loads(releaseRequest.text)
+        print(jsonData['id'])
         if int(jsonData['id']) > self.currentVersion:
             if self.YesNo():
                 downloadRequest = requests.get(jsonData['zipball_url'], stream=True)
