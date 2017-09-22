@@ -24,7 +24,7 @@ Das Projekt klonen und anschließend die Datei ComunioBot.py ausführen
 ### Login
 Zum Login einfach Benutzername und Passwort in die entsprechenden Felder eingeben und einloggen.
 Nach ein paar Sekunden wird es eine Rückmeldung geben, ob der Login erfolgreich war.
-###Einstellungen vornehmen
+### Einstellungen vornehmen
 #### Modus
 Über den Tab Modus kann man folgende Einstellungen vornehmen:<br><br>
 1. Feste Praemien<br>
