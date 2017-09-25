@@ -7,7 +7,7 @@
                       
                  Programm zur automatisierten Vergabe von Prämien nach einem Spieltag.
 ````
-
+# Bei Fragen und Problemen dem Discord-Channel beitreten: https://discord.gg/aFX4kDr
 ## Installation auf Windows
 Auf dem System muss Python 3.x mit den Pythonmodulen requests und wxPython installiert sein.<br>
 Zuerst Python 3.x installieren: https://www.python.org/downloads/<br>
