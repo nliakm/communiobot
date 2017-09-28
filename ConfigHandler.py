@@ -11,6 +11,7 @@ def createConfig():
             , '13': '700', '14': '600', '15': '500', '16': '400', '17': '300', '18': '200'}
         config['Punkte basiert'] = {'Multiplikator': '1000'}
         config['Letzte Praemienplatzierung'] = {'Max_Platzierung': '4'}
+        config['Aktiver Modus'] = {'name': 'punktbasiert'}
         with open('config.ini', 'w') as configfile:
             config.write(configfile)
         return True
@@ -32,6 +33,8 @@ def updateConfig(filename, section_name, valuelist):
             config['Punkte basiert']['Multiplikator'] = valuelist
         elif(section_name == 'maxPlayerReward'):
             config['Letzte Praemienplatzierung']['Max_Platzierung'] = valuelist
+        elif(section_name == 'aktiver modus'):
+            config['Aktiver Modus']['name'] = valuelist
 
         with open('config.ini', 'w') as configfile:
             config.write(configfile)
@@ -64,4 +67,6 @@ def readConfig(filename, placement, modus):
             return config['Punkte basiert']['Multiplikator']
         elif(str(modus) == 'maxPlayerReward'):
             return config['Letzte Praemienplatzierung']['Max_Platzierung']
+        elif(str(modus) == 'aktiver modus'):
+            return config['Aktiver Modus']['name']        
     return -1  

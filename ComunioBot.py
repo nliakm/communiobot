@@ -346,7 +346,7 @@ class MouseEventFrame(wx.Frame):
         self.userlist = []
 
         wx.Frame.__init__(self, parent, id, 'comuniobot', size=(
-            700, 405), style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+            700, 405), style=wx.FRAME_NO_WINDOW_MENU & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
         self.panel = wx.Panel(self)
 
         # menu bar
@@ -364,10 +364,10 @@ class MouseEventFrame(wx.Frame):
         menuBar.Append(menu, "&Datei")
 
         self.radioMenu = wx.Menu()
-        self.staticReward = self.radioMenu.Append(wx.NewId(), "Feste Praemien",
+        self.staticReward = self.radioMenu.Append(300, "Feste Praemien",
                                                   "Die Spieler bekommen je nach Platzierung feste Beträge",
                                                   wx.ITEM_RADIO)
-        self.multiplierReward = self.radioMenu.Append(wx.NewId(), "Punkte basiert",
+        self.multiplierReward = self.radioMenu.Append(301, "Punkte basiert",
                                                       "Punkte als Multiplikator eines festen Betrags",
                                                       wx.ITEM_RADIO)
         menuBar.Append(self.radioMenu, "&Modus")
@@ -381,6 +381,10 @@ class MouseEventFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onMultiplierDialog, multiplierMenuItem)
         self.SetMenuBar(menuBar)
 
+        if (readConfig('config.ini', 1, 'aktiver modus') == 'punktbasiert') and (self.GetMenuBar().FindItemById(self.staticReward.GetId()).IsChecked()):
+            menuBar.Check(301, True)
+        elif (readConfig('config.ini', 1, 'aktiver modus') == 'fest') and (self.GetMenuBar().FindItemById(self.multiplierReward.GetId()).IsChecked()):
+            menuBar.Check(300, True)
         # Sizer implementation
         topSizer = wx.BoxSizer(wx.VERTICAL)  # parent sizer
         loginSizer = wx.BoxSizer(wx.HORIZONTAL)  # sizer of login objects
@@ -507,7 +511,12 @@ class MouseEventFrame(wx.Frame):
 
     #----------------------------------------------------------------------
     def onExit(self, event):
-        """Event that terminates app Datei > Beenden"""
+        """Event that terminates app Datei > Beenden"""  
+        if self.GetMenuBar().FindItemById(300).IsChecked():
+            updateConfig('config.ini', 'aktiver modus', 'fest')
+        if self.GetMenuBar().FindItemById(301).IsChecked():
+            updateConfig('config.ini', 'aktiver modus', 'punktbasiert')
+
         self.Close()
 
     #----------------------------------------------------------------------
@@ -515,6 +524,10 @@ class MouseEventFrame(wx.Frame):
         """Call the executeTransaction method"""
         if(bot.getLeaderStatus()):
             bot.executeTransaction('config.ini')
+            if self.GetMenuBar().FindItemById(300).IsChecked():
+                updateConfig('config.ini', 'aktiver modus', 'fest')
+            elif self.GetMenuBar().FindItemById(301).IsChecked():
+                updateConfig('config.ini', 'aktiver modus', 'punktbasiert')
         else:
             wx.MessageBox('Du bist kein Communityleader!',
                           'Fehler!', wx.OK | wx.ICON_ERROR, self.panel)
