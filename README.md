@@ -20,7 +20,8 @@ Als letztes requests und wxPython mit folgendem Befehl installieren:<br>
 Nun sind alle Voraussetzungen installiert und das Programm kann gestartet werden. 
 
 ## Ausführung
-Das Projekt klonen und anschließend die Datei ComunioBot.py ausführen
+Das Proojekt downloaden, entpacken und anschließend die Datei ComunioBot.py ausführen
+<img src="https://raw.githubusercontent.com/nliakm/comuniobot/master/ReadmeImages/DownloadProgram.png" /> <br>
 ### Login
 Zum Login einfach Benutzername und Passwort in die entsprechenden Felder eingeben und einloggen.
 Nach ein paar Sekunden wird es eine Rückmeldung geben, ob der Login erfolgreich war.
