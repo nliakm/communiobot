@@ -338,7 +338,7 @@ class MouseEventFrame(wx.Frame):
 
     def __init__(self, parent, id):
 
-        self.currentVersion = 3
+        self.currentVersion = 4
         self.authTokenFromLogin = ''
         self.communityid = ''
         self.userid = ''
