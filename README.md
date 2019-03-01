@@ -16,7 +16,7 @@ Wichtig, den Haken bei 'Add Python 3.x to PATH' setzen:<br>
 Anschließend cmd Shell öffnen und 'python --version' eingeben, um sicherzustellen, dass Python korrekt installiert ist. Das Ergebnis sollte folgendermaßen aussehen:<br>
 <img src="https://raw.githubusercontent.com/nliakm/comuniobot/master/ReadmeImages/cmdPythonVersion.png" /><br>
 Als letztes requests und wxPython mit folgendem Befehl installieren:<br>
-pip install requests && pip -U install wxPython
+pip install requests && pip -U install wxPython <br>
 Nun sind alle Voraussetzungen installiert und das Programm kann gestartet werden. 
 
 ## Ausführung
